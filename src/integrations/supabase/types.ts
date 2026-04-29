@@ -14,13 +14,112 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          id: string
+          username: string
+          visibility: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          id: string
+          username: string
+          visibility?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          username?: string
+          visibility?: string
+        }
+        Relationships: []
+      }
+      study_sessions: {
+        Row: {
+          duration_seconds: number
+          ended_at: string | null
+          id: string
+          saved: boolean
+          started_at: string
+          task_title: string
+          todo_id: string | null
+          user_id: string
+        }
+        Insert: {
+          duration_seconds?: number
+          ended_at?: string | null
+          id?: string
+          saved?: boolean
+          started_at?: string
+          task_title: string
+          todo_id?: string | null
+          user_id: string
+        }
+        Update: {
+          duration_seconds?: number
+          ended_at?: string | null
+          id?: string
+          saved?: boolean
+          started_at?: string
+          task_title?: string
+          todo_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_sessions_todo_id_fkey"
+            columns: ["todo_id"]
+            isOneToOne: false
+            referencedRelation: "todos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      todos: {
+        Row: {
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          id: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_leaderboard: {
+        Args: { range_kind: string }
+        Returns: {
+          avatar_url: string
+          total_seconds: number
+          user_id: string
+          username: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
