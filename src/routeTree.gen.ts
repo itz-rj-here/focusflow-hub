@@ -9,38 +9,110 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ReviewSessionIdRouteImport } from './routes/review.$sessionId'
+import { Route as FocusSessionIdRouteImport } from './routes/focus.$sessionId'
+import { Route as AppAppRouteImport } from './routes/_app.app'
 
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReviewSessionIdRoute = ReviewSessionIdRouteImport.update({
+  id: '/review/$sessionId',
+  path: '/review/$sessionId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FocusSessionIdRoute = FocusSessionIdRouteImport.update({
+  id: '/focus/$sessionId',
+  path: '/focus/$sessionId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppAppRoute = AppAppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/app': typeof AppAppRoute
+  '/focus/$sessionId': typeof FocusSessionIdRoute
+  '/review/$sessionId': typeof ReviewSessionIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/app': typeof AppAppRoute
+  '/focus/$sessionId': typeof FocusSessionIdRoute
+  '/review/$sessionId': typeof ReviewSessionIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_app': typeof AppRouteWithChildren
+  '/login': typeof LoginRoute
+  '/_app/app': typeof AppAppRoute
+  '/focus/$sessionId': typeof FocusSessionIdRoute
+  '/review/$sessionId': typeof ReviewSessionIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/app'
+    | '/focus/$sessionId'
+    | '/review/$sessionId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/login' | '/app' | '/focus/$sessionId' | '/review/$sessionId'
+  id:
+    | '__root__'
+    | '/'
+    | '/_app'
+    | '/login'
+    | '/_app/app'
+    | '/focus/$sessionId'
+    | '/review/$sessionId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  FocusSessionIdRoute: typeof FocusSessionIdRoute
+  ReviewSessionIdRoute: typeof ReviewSessionIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +120,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/review/$sessionId': {
+      id: '/review/$sessionId'
+      path: '/review/$sessionId'
+      fullPath: '/review/$sessionId'
+      preLoaderRoute: typeof ReviewSessionIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/focus/$sessionId': {
+      id: '/focus/$sessionId'
+      path: '/focus/$sessionId'
+      fullPath: '/focus/$sessionId'
+      preLoaderRoute: typeof FocusSessionIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/app': {
+      id: '/_app/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppAppRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
+interface AppRouteChildren {
+  AppAppRoute: typeof AppAppRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppAppRoute: AppAppRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
+  LoginRoute: LoginRoute,
+  FocusSessionIdRoute: FocusSessionIdRoute,
+  ReviewSessionIdRoute: ReviewSessionIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
