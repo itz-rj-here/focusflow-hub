@@ -10,15 +10,23 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ReviewSessionIdRouteImport } from './routes/review.$sessionId'
 import { Route as FocusSessionIdRouteImport } from './routes/focus.$sessionId'
+import { Route as AppSettingsRouteImport } from './routes/_app.settings'
+import { Route as AppHistoryRouteImport } from './routes/_app.history'
 import { Route as AppAppRouteImport } from './routes/_app.app'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LeaderboardRoute = LeaderboardRouteImport.update({
+  id: '/leaderboard',
+  path: '/leaderboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppRoute = AppRouteImport.update({
@@ -40,6 +48,16 @@ const FocusSessionIdRoute = FocusSessionIdRouteImport.update({
   path: '/focus/$sessionId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppHistoryRoute = AppHistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAppRoute = AppAppRouteImport.update({
   id: '/app',
   path: '/app',
@@ -48,15 +66,21 @@ const AppAppRoute = AppAppRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/app': typeof AppAppRoute
+  '/history': typeof AppHistoryRoute
+  '/settings': typeof AppSettingsRoute
   '/focus/$sessionId': typeof FocusSessionIdRoute
   '/review/$sessionId': typeof ReviewSessionIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/app': typeof AppAppRoute
+  '/history': typeof AppHistoryRoute
+  '/settings': typeof AppSettingsRoute
   '/focus/$sessionId': typeof FocusSessionIdRoute
   '/review/$sessionId': typeof ReviewSessionIdRoute
 }
@@ -64,8 +88,11 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
+  '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/_app/app': typeof AppAppRoute
+  '/_app/history': typeof AppHistoryRoute
+  '/_app/settings': typeof AppSettingsRoute
   '/focus/$sessionId': typeof FocusSessionIdRoute
   '/review/$sessionId': typeof ReviewSessionIdRoute
 }
@@ -73,18 +100,32 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/leaderboard'
     | '/login'
     | '/app'
+    | '/history'
+    | '/settings'
     | '/focus/$sessionId'
     | '/review/$sessionId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/app' | '/focus/$sessionId' | '/review/$sessionId'
+  to:
+    | '/'
+    | '/leaderboard'
+    | '/login'
+    | '/app'
+    | '/history'
+    | '/settings'
+    | '/focus/$sessionId'
+    | '/review/$sessionId'
   id:
     | '__root__'
     | '/'
     | '/_app'
+    | '/leaderboard'
     | '/login'
     | '/_app/app'
+    | '/_app/history'
+    | '/_app/settings'
     | '/focus/$sessionId'
     | '/review/$sessionId'
   fileRoutesById: FileRoutesById
@@ -92,6 +133,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
+  LeaderboardRoute: typeof LeaderboardRoute
   LoginRoute: typeof LoginRoute
   FocusSessionIdRoute: typeof FocusSessionIdRoute
   ReviewSessionIdRoute: typeof ReviewSessionIdRoute
@@ -104,6 +146,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/leaderboard': {
+      id: '/leaderboard'
+      path: '/leaderboard'
+      fullPath: '/leaderboard'
+      preLoaderRoute: typeof LeaderboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app': {
@@ -134,6 +183,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FocusSessionIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/settings': {
+      id: '/_app/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/history': {
+      id: '/_app/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof AppHistoryRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/app': {
       id: '/_app/app'
       path: '/app'
@@ -146,10 +209,14 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppAppRoute: typeof AppAppRoute
+  AppHistoryRoute: typeof AppHistoryRoute
+  AppSettingsRoute: typeof AppSettingsRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppAppRoute: AppAppRoute,
+  AppHistoryRoute: AppHistoryRoute,
+  AppSettingsRoute: AppSettingsRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -157,6 +224,7 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
+  LeaderboardRoute: LeaderboardRoute,
   LoginRoute: LoginRoute,
   FocusSessionIdRoute: FocusSessionIdRoute,
   ReviewSessionIdRoute: ReviewSessionIdRoute,
