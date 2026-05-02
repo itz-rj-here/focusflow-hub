@@ -18,6 +18,7 @@ import { Route as FocusSessionIdRouteImport } from './routes/focus.$sessionId'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppHistoryRouteImport } from './routes/_app.history'
 import { Route as AppAppRouteImport } from './routes/_app.app'
+import { Route as AppSubjectSubjectIdRouteImport } from './routes/_app.subject.$subjectId'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -63,6 +64,11 @@ const AppAppRoute = AppAppRouteImport.update({
   path: '/app',
   getParentRoute: () => AppRoute,
 } as any)
+const AppSubjectSubjectIdRoute = AppSubjectSubjectIdRouteImport.update({
+  id: '/subject/$subjectId',
+  path: '/subject/$subjectId',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -73,6 +79,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AppSettingsRoute
   '/focus/$sessionId': typeof FocusSessionIdRoute
   '/review/$sessionId': typeof ReviewSessionIdRoute
+  '/subject/$subjectId': typeof AppSubjectSubjectIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -83,6 +90,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AppSettingsRoute
   '/focus/$sessionId': typeof FocusSessionIdRoute
   '/review/$sessionId': typeof ReviewSessionIdRoute
+  '/subject/$subjectId': typeof AppSubjectSubjectIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -95,6 +103,7 @@ export interface FileRoutesById {
   '/_app/settings': typeof AppSettingsRoute
   '/focus/$sessionId': typeof FocusSessionIdRoute
   '/review/$sessionId': typeof ReviewSessionIdRoute
+  '/_app/subject/$subjectId': typeof AppSubjectSubjectIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -107,6 +116,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/focus/$sessionId'
     | '/review/$sessionId'
+    | '/subject/$subjectId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -117,6 +127,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/focus/$sessionId'
     | '/review/$sessionId'
+    | '/subject/$subjectId'
   id:
     | '__root__'
     | '/'
@@ -128,6 +139,7 @@ export interface FileRouteTypes {
     | '/_app/settings'
     | '/focus/$sessionId'
     | '/review/$sessionId'
+    | '/_app/subject/$subjectId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -204,6 +216,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAppRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/subject/$subjectId': {
+      id: '/_app/subject/$subjectId'
+      path: '/subject/$subjectId'
+      fullPath: '/subject/$subjectId'
+      preLoaderRoute: typeof AppSubjectSubjectIdRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
@@ -211,12 +230,14 @@ interface AppRouteChildren {
   AppAppRoute: typeof AppAppRoute
   AppHistoryRoute: typeof AppHistoryRoute
   AppSettingsRoute: typeof AppSettingsRoute
+  AppSubjectSubjectIdRoute: typeof AppSubjectSubjectIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppAppRoute: AppAppRoute,
   AppHistoryRoute: AppHistoryRoute,
   AppSettingsRoute: AppSettingsRoute,
+  AppSubjectSubjectIdRoute: AppSubjectSubjectIdRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
