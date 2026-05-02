@@ -23,6 +23,8 @@ function FocusPage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [taskTitle, setTaskTitle] = useState<string | null>(null);
+  const [subjectName, setSubjectName] = useState<string | null>(null);
+  const [subjectColor, setSubjectColor] = useState<string | null>(null);
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -36,7 +38,7 @@ function FocusPage() {
     (async () => {
       const { data, error } = await supabase
         .from("study_sessions")
-        .select("task_title, started_at, ended_at")
+        .select("task_title, started_at, ended_at, subjects(name, color_code)")
         .eq("id", sessionId)
         .single();
       if (cancelled) return;
@@ -50,6 +52,8 @@ function FocusPage() {
         return;
       }
       setTaskTitle(data.task_title);
+      setSubjectName(data.subjects?.name ?? null);
+      setSubjectColor(data.subjects?.color_code ?? null);
       setStartedAt(new Date(data.started_at).getTime());
     })();
     return () => { cancelled = true; };
