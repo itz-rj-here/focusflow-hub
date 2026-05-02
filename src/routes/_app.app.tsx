@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -235,14 +235,12 @@ function ColorPicker({ value, onChange }: { value: string; onChange: (c: string)
 
 function EditSubjectDialog({ subject, onClose }: { subject: Subject | null; onClose: () => void }) {
   const qc = useQueryClient();
-  const [name, setName] = useState(subject?.name ?? "");
-  const [color, setColor] = useState(subject?.color_code ?? PALETTE[0]);
+  const [name, setName] = useState("");
+  const [color, setColor] = useState(PALETTE[0]);
 
-  // Sync when subject changes
-  useState(() => {});
-  if (subject && name === "" && color === PALETTE[0]) {
-    // first init via effect-less guard
-  }
+  useEffect(() => {
+    if (subject) { setName(subject.name); setColor(subject.color_code); }
+  }, [subject]);
 
   const update = useMutation({
     mutationFn: async () => {
