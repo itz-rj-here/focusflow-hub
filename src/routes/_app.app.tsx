@@ -1,190 +1,181 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Card } from "@/components/ui/card";
-import { Play, Plus, Trash2, Pencil, Check, X } from "lucide-react";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
+} from "@/components/ui/dialog";
+import { Plus, FolderOpen } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 
 export const Route = createFileRoute("/_app/app")({
-  head: () => ({ meta: [{ title: "Tasks — FocusFlow" }] }),
-  component: TasksPage,
+  head: () => ({ meta: [{ title: "Subjects — FocusFlow" }] }),
+  component: HomePage,
 });
 
-type Todo = Tables<"todos">;
+type Subject = Tables<"subjects">;
 
-function TasksPage() {
+const PALETTE = [
+  "#6366f1", "#ec4899", "#f59e0b", "#10b981",
+  "#06b6d4", "#8b5cf6", "#ef4444", "#84cc16",
+];
+
+function HomePage() {
   const { user } = useAuth();
   const userId = user!.id;
   const qc = useQueryClient();
-  const navigate = useNavigate();
-  const [newTitle, setNewTitle] = useState("");
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [color, setColor] = useState(PALETTE[0]);
 
-  const { data: todos = [], isLoading } = useQuery({
-    queryKey: ["todos", userId],
+  const { data: subjects = [], isLoading } = useQuery({
+    queryKey: ["subjects", userId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("todos")
-        .select("*")
-        .order("completed", { ascending: true })
-        .order("created_at", { ascending: false });
+        .from("subjects").select("*").order("created_at", { ascending: true });
       if (error) throw error;
-      return data as Todo[];
+      return data as Subject[];
     },
   });
 
-  const addTodo = useMutation({
-    mutationFn: async (title: string) => {
-      const { error } = await supabase.from("todos").insert({ user_id: userId, title });
-      if (error) throw error;
+  // Aggregate counts: tasks open per subject + total focus seconds
+  const { data: stats = {} } = useQuery({
+    queryKey: ["subject-stats", userId],
+    queryFn: async () => {
+      const [todosRes, sessionsRes] = await Promise.all([
+        supabase.from("todos").select("subject_id, completed"),
+        supabase.from("study_sessions").select("subject_id, duration_seconds").eq("saved", true),
+      ]);
+      if (todosRes.error) throw todosRes.error;
+      if (sessionsRes.error) throw sessionsRes.error;
+      const out: Record<string, { open: number; secs: number }> = {};
+      todosRes.data.forEach((t) => {
+        if (!t.subject_id) return;
+        out[t.subject_id] ??= { open: 0, secs: 0 };
+        if (!t.completed) out[t.subject_id].open += 1;
+      });
+      sessionsRes.data.forEach((s) => {
+        out[s.subject_id] ??= { open: 0, secs: 0 };
+        out[s.subject_id].secs += s.duration_seconds;
+      });
+      return out;
     },
-    onSuccess: () => { setNewTitle(""); qc.invalidateQueries({ queryKey: ["todos", userId] }); },
-    onError: (e: Error) => toast.error(e.message),
   });
 
-  const toggle = useMutation({
-    mutationFn: async (t: Todo) => {
-      const { error } = await supabase
-        .from("todos")
-        .update({ completed: !t.completed, completed_at: !t.completed ? new Date().toISOString() : null })
-        .eq("id", t.id);
+  const create = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("subjects").insert({
+        user_id: userId, name: name.trim(), color_code: color,
+      });
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["todos", userId] }),
-  });
-
-  const remove = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("todos").delete().eq("id", id);
-      if (error) throw error;
+    onSuccess: () => {
+      setName(""); setColor(PALETTE[0]); setOpen(false);
+      qc.invalidateQueries({ queryKey: ["subjects", userId] });
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["todos", userId] }),
-  });
-
-  const rename = useMutation({
-    mutationFn: async ({ id, title }: { id: string; title: string }) => {
-      const { error } = await supabase.from("todos").update({ title }).eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["todos", userId] }),
-  });
-
-  const startSession = useMutation({
-    mutationFn: async (todo: Todo) => {
-      const { data, error } = await supabase
-        .from("study_sessions")
-        .insert({
-          user_id: userId,
-          todo_id: todo.id,
-          task_title: todo.title,
-          started_at: new Date().toISOString(),
-        })
-        .select("id")
-        .single();
-      if (error) throw error;
-      return data.id as string;
-    },
-    onSuccess: (sessionId) => navigate({ to: "/focus/$sessionId", params: { sessionId } }),
     onError: (e: Error) => toast.error(e.message),
   });
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Today's tasks</h1>
-        <p className="text-sm text-muted-foreground">Add what you want to work on, then start a focus session.</p>
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Subjects</h1>
+          <p className="text-sm text-muted-foreground">Pick a subject to view tasks or start focusing.</p>
+        </div>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm" className="gap-1.5"><Plus className="h-4 w-4" />New subject</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader><DialogTitle>New subject</DialogTitle></DialogHeader>
+            <form
+              onSubmit={(e) => { e.preventDefault(); if (name.trim()) create.mutate(); }}
+              className="space-y-4"
+            >
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Name</label>
+                <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Calculus" autoFocus />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Color</label>
+                <div className="flex flex-wrap gap-2">
+                  {PALETTE.map((c) => (
+                    <button
+                      type="button"
+                      key={c}
+                      onClick={() => setColor(c)}
+                      aria-label={`Pick ${c}`}
+                      className={`h-7 w-7 rounded-full ring-2 ring-offset-2 ring-offset-background transition ${color === c ? "ring-foreground" : "ring-transparent"}`}
+                      style={{ backgroundColor: c }}
+                    />
+                  ))}
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="submit" disabled={!name.trim() || create.isPending}>Create</Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
-
-      <Card className="p-4">
-        <form
-          onSubmit={(e) => { e.preventDefault(); if (newTitle.trim()) addTodo.mutate(newTitle.trim()); }}
-          className="flex items-center gap-2"
-        >
-          <Input
-            value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
-            placeholder="What do you want to focus on?"
-            className="h-11"
-            autoFocus
-          />
-          <Button type="submit" size="lg" disabled={!newTitle.trim() || addTodo.isPending}>
-            <Plus className="h-4 w-4" />
-            <span className="ml-1 hidden sm:inline">Add</span>
-          </Button>
-        </form>
-      </Card>
 
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Loading…</p>
-      ) : todos.length === 0 ? (
+      ) : subjects.length === 0 ? (
         <Card className="p-12 text-center">
-          <p className="text-sm text-muted-foreground">No tasks yet. Add your first one above.</p>
+          <FolderOpen className="mx-auto h-8 w-8 text-muted-foreground" />
+          <p className="mt-3 text-sm text-muted-foreground">No subjects yet. Create one to get started.</p>
         </Card>
       ) : (
-        <ul className="space-y-2">
-          {todos.map((t) => (
-            <TodoRow
-              key={t.id}
-              todo={t}
-              onToggle={() => toggle.mutate(t)}
-              onDelete={() => remove.mutate(t.id)}
-              onRename={(title) => rename.mutate({ id: t.id, title })}
-              onStart={() => startSession.mutate(t)}
-              starting={startSession.isPending}
-            />
-          ))}
-        </ul>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {subjects.map((s) => {
+            const st = stats[s.id] ?? { open: 0, secs: 0 };
+            const hours = Math.floor(st.secs / 3600);
+            const mins = Math.floor((st.secs % 3600) / 60);
+            return (
+              <Link
+                key={s.id}
+                to="/subject/$subjectId"
+                params={{ subjectId: s.id }}
+                className="group"
+              >
+                <Card className="relative overflow-hidden p-5 transition hover:border-primary/40 hover:shadow-lg">
+                  <div
+                    className="absolute inset-x-0 top-0 h-1"
+                    style={{ backgroundColor: s.color_code }}
+                  />
+                  <div className="flex items-center gap-3">
+                    <span
+                      className="grid h-10 w-10 place-items-center rounded-lg text-base font-semibold text-white"
+                      style={{ backgroundColor: s.color_code }}
+                    >
+                      {s.name.charAt(0).toUpperCase()}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium">{s.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {st.open} open {st.open === 1 ? "task" : "tasks"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-4 flex items-baseline justify-between">
+                    <span className="text-xs uppercase tracking-wider text-muted-foreground">Focus time</span>
+                    <span className="font-mono text-sm tabular-nums">
+                      {hours > 0 ? `${hours}h ${mins}m` : `${mins}m`}
+                    </span>
+                  </div>
+                </Card>
+              </Link>
+            );
+          })}
+        </div>
       )}
     </div>
-  );
-}
-
-function TodoRow({
-  todo, onToggle, onDelete, onRename, onStart, starting,
-}: {
-  todo: Todo;
-  onToggle: () => void;
-  onDelete: () => void;
-  onRename: (title: string) => void;
-  onStart: () => void;
-  starting: boolean;
-}) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(todo.title);
-  useEffect(() => setDraft(todo.title), [todo.title]);
-
-  return (
-    <li>
-      <Card className={`flex items-center gap-3 p-3 ${todo.completed ? "opacity-60" : ""}`}>
-        <Checkbox checked={todo.completed} onCheckedChange={onToggle} className="h-5 w-5" />
-        {editing ? (
-          <div className="flex flex-1 items-center gap-2">
-            <Input value={draft} onChange={(e) => setDraft(e.target.value)} className="h-9" autoFocus
-              onKeyDown={(e) => { if (e.key === "Enter") { onRename(draft.trim() || todo.title); setEditing(false); } if (e.key === "Escape") setEditing(false); }} />
-            <Button size="icon" variant="ghost" onClick={() => { onRename(draft.trim() || todo.title); setEditing(false); }}><Check className="h-4 w-4" /></Button>
-            <Button size="icon" variant="ghost" onClick={() => setEditing(false)}><X className="h-4 w-4" /></Button>
-          </div>
-        ) : (
-          <span className={`flex-1 text-sm ${todo.completed ? "line-through" : ""}`}>{todo.title}</span>
-        )}
-
-        {!editing && !todo.completed && (
-          <Button onClick={onStart} disabled={starting} size="sm" className="gap-1">
-            <Play className="h-3.5 w-3.5" /> Focus
-          </Button>
-        )}
-        {!editing && (
-          <>
-            <Button size="icon" variant="ghost" onClick={() => setEditing(true)} aria-label="Edit"><Pencil className="h-4 w-4" /></Button>
-            <Button size="icon" variant="ghost" onClick={onDelete} aria-label="Delete"><Trash2 className="h-4 w-4" /></Button>
-          </>
-        )}
-      </Card>
-    </li>
   );
 }

@@ -45,6 +45,7 @@ export type Database = {
           id: string
           saved: boolean
           started_at: string
+          subject_id: string
           task_title: string
           todo_id: string | null
           user_id: string
@@ -55,6 +56,7 @@ export type Database = {
           id?: string
           saved?: boolean
           started_at?: string
+          subject_id: string
           task_title: string
           todo_id?: string | null
           user_id: string
@@ -65,11 +67,19 @@ export type Database = {
           id?: string
           saved?: boolean
           started_at?: string
+          subject_id?: string
           task_title?: string
           todo_id?: string | null
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "study_sessions_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "study_sessions_todo_id_fkey"
             columns: ["todo_id"]
@@ -79,12 +89,37 @@ export type Database = {
           },
         ]
       }
+      subjects: {
+        Row: {
+          color_code: string
+          created_at: string
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          color_code?: string
+          created_at?: string
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          color_code?: string
+          created_at?: string
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       todos: {
         Row: {
           completed: boolean
           completed_at: string | null
           created_at: string
           id: string
+          subject_id: string | null
           title: string
           user_id: string
         }
@@ -93,6 +128,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           id?: string
+          subject_id?: string | null
           title: string
           user_id: string
         }
@@ -101,10 +137,19 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           id?: string
+          subject_id?: string | null
           title?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "todos_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
