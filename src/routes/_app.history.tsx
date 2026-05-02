@@ -30,7 +30,7 @@ function HistoryPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("study_sessions")
-        .select("id, task_title, duration_seconds, started_at, ended_at")
+        .select("id, task_title, duration_seconds, started_at, ended_at, subject_id, subjects(name, color_code)")
         .eq("saved", true)
         .order("ended_at", { ascending: false })
         .limit(200);
