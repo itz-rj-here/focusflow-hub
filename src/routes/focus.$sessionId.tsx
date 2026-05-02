@@ -85,9 +85,19 @@ function FocusPage() {
   return (
     <main className="bg-radial-glow grid min-h-screen grid-rows-[1fr_auto] px-6">
       <div className="flex flex-col items-center justify-center gap-12 text-center">
-        <p className="max-w-2xl text-balance text-xl text-muted-foreground sm:text-2xl">
-          {taskTitle}
-        </p>
+        <div className="flex flex-col items-center gap-3">
+          {subjectName && (
+            <span
+              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-3 py-1 text-xs text-muted-foreground backdrop-blur"
+            >
+              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: subjectColor ?? "var(--primary)" }} />
+              {subjectName}
+            </span>
+          )}
+          <p className="max-w-2xl text-balance text-xl text-muted-foreground sm:text-2xl">
+            {taskTitle}
+          </p>
+        </div>
         <div className="font-mono text-7xl font-light tracking-tight tabular-nums sm:text-9xl timer-tick">
           {formatHMS(elapsed)}
         </div>
