@@ -125,6 +125,7 @@ function HistoryPage() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Subject</TableHead>
               <TableHead>Task</TableHead>
               <TableHead>When</TableHead>
               <TableHead className="text-right">Duration</TableHead>
@@ -132,11 +133,19 @@ function HistoryPage() {
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground">Loading…</TableCell></TableRow>
+              <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground">Loading…</TableCell></TableRow>
             ) : sessions.length === 0 ? (
-              <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground">No sessions yet. Start one from your tasks.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground">No sessions yet. Start one from your tasks.</TableCell></TableRow>
             ) : sessions.map((s) => (
               <TableRow key={s.id}>
+                <TableCell>
+                  {s.subjects ? (
+                    <span className="inline-flex items-center gap-1.5 text-sm">
+                      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: s.subjects.color_code }} />
+                      {s.subjects.name}
+                    </span>
+                  ) : <span className="text-muted-foreground">—</span>}
+                </TableCell>
                 <TableCell className="font-medium">{s.task_title}</TableCell>
                 <TableCell className="text-muted-foreground">{s.ended_at ? new Date(s.ended_at).toLocaleString() : "—"}</TableCell>
                 <TableCell className="text-right font-mono">{fmt(s.duration_seconds)}</TableCell>
