@@ -15,6 +15,7 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ReviewSessionIdRouteImport } from './routes/review.$sessionId'
 import { Route as FocusSessionIdRouteImport } from './routes/focus.$sessionId'
+import { Route as AppTasksRouteImport } from './routes/_app.tasks'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppHistoryRouteImport } from './routes/_app.history'
 import { Route as AppAppRouteImport } from './routes/_app.app'
@@ -49,6 +50,11 @@ const FocusSessionIdRoute = FocusSessionIdRouteImport.update({
   path: '/focus/$sessionId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppTasksRoute = AppTasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -77,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppAppRoute
   '/history': typeof AppHistoryRoute
   '/settings': typeof AppSettingsRoute
+  '/tasks': typeof AppTasksRoute
   '/focus/$sessionId': typeof FocusSessionIdRoute
   '/review/$sessionId': typeof ReviewSessionIdRoute
   '/subject/$subjectId': typeof AppSubjectSubjectIdRoute
@@ -88,6 +95,7 @@ export interface FileRoutesByTo {
   '/app': typeof AppAppRoute
   '/history': typeof AppHistoryRoute
   '/settings': typeof AppSettingsRoute
+  '/tasks': typeof AppTasksRoute
   '/focus/$sessionId': typeof FocusSessionIdRoute
   '/review/$sessionId': typeof ReviewSessionIdRoute
   '/subject/$subjectId': typeof AppSubjectSubjectIdRoute
@@ -101,6 +109,7 @@ export interface FileRoutesById {
   '/_app/app': typeof AppAppRoute
   '/_app/history': typeof AppHistoryRoute
   '/_app/settings': typeof AppSettingsRoute
+  '/_app/tasks': typeof AppTasksRoute
   '/focus/$sessionId': typeof FocusSessionIdRoute
   '/review/$sessionId': typeof ReviewSessionIdRoute
   '/_app/subject/$subjectId': typeof AppSubjectSubjectIdRoute
@@ -114,6 +123,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/history'
     | '/settings'
+    | '/tasks'
     | '/focus/$sessionId'
     | '/review/$sessionId'
     | '/subject/$subjectId'
@@ -125,6 +135,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/history'
     | '/settings'
+    | '/tasks'
     | '/focus/$sessionId'
     | '/review/$sessionId'
     | '/subject/$subjectId'
@@ -137,6 +148,7 @@ export interface FileRouteTypes {
     | '/_app/app'
     | '/_app/history'
     | '/_app/settings'
+    | '/_app/tasks'
     | '/focus/$sessionId'
     | '/review/$sessionId'
     | '/_app/subject/$subjectId'
@@ -195,6 +207,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FocusSessionIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/tasks': {
+      id: '/_app/tasks'
+      path: '/tasks'
+      fullPath: '/tasks'
+      preLoaderRoute: typeof AppTasksRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/settings': {
       id: '/_app/settings'
       path: '/settings'
@@ -230,6 +249,7 @@ interface AppRouteChildren {
   AppAppRoute: typeof AppAppRoute
   AppHistoryRoute: typeof AppHistoryRoute
   AppSettingsRoute: typeof AppSettingsRoute
+  AppTasksRoute: typeof AppTasksRoute
   AppSubjectSubjectIdRoute: typeof AppSubjectSubjectIdRoute
 }
 
@@ -237,6 +257,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAppRoute: AppAppRoute,
   AppHistoryRoute: AppHistoryRoute,
   AppSettingsRoute: AppSettingsRoute,
+  AppTasksRoute: AppTasksRoute,
   AppSubjectSubjectIdRoute: AppSubjectSubjectIdRoute,
 }
 
