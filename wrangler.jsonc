@@ -3,5 +3,9 @@
   "name": "tanstack-start-app",
   "compatibility_date": "2025-09-24",
   "compatibility_flags": ["nodejs_compat"],
-  "main": "@tanstack/react-start/server-entry",
+  "main": "dist/server/index.js",
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "dist/client"
+  }
 }
