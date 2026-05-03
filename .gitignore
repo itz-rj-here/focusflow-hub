@@ -20,6 +20,10 @@ dist-ssr
 .wrangler/
 .dev.vars
 
+# Private / Local
+FOCUSFLOW_MASTERPLAN.md
+recipebook.md
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
