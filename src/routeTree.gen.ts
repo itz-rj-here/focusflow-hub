@@ -13,13 +13,16 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as RoomRoomIdRouteImport } from './routes/room.$roomId'
 import { Route as ReviewSessionIdRouteImport } from './routes/review.$sessionId'
 import { Route as GroupsGroupIdRouteImport } from './routes/groups.$groupId'
 import { Route as FocusSessionIdRouteImport } from './routes/focus.$sessionId'
 import { Route as AppTasksRouteImport } from './routes/_app.tasks'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
+import { Route as AppRoomsRouteImport } from './routes/_app.rooms'
 import { Route as AppHistoryRouteImport } from './routes/_app.history'
 import { Route as AppGroupsRouteImport } from './routes/_app.groups'
+import { Route as AppFriendsRouteImport } from './routes/_app.friends'
 import { Route as AppAppRouteImport } from './routes/_app.app'
 import { Route as AppSubjectSubjectIdRouteImport } from './routes/_app.subject.$subjectId'
 
@@ -40,6 +43,11 @@ const AppRoute = AppRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RoomRoomIdRoute = RoomRoomIdRouteImport.update({
+  id: '/room/$roomId',
+  path: '/room/$roomId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReviewSessionIdRoute = ReviewSessionIdRouteImport.update({
@@ -67,6 +75,11 @@ const AppSettingsRoute = AppSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AppRoute,
 } as any)
+const AppRoomsRoute = AppRoomsRouteImport.update({
+  id: '/rooms',
+  path: '/rooms',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppHistoryRoute = AppHistoryRouteImport.update({
   id: '/history',
   path: '/history',
@@ -75,6 +88,11 @@ const AppHistoryRoute = AppHistoryRouteImport.update({
 const AppGroupsRoute = AppGroupsRouteImport.update({
   id: '/groups',
   path: '/groups',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppFriendsRoute = AppFriendsRouteImport.update({
+  id: '/friends',
+  path: '/friends',
   getParentRoute: () => AppRoute,
 } as any)
 const AppAppRoute = AppAppRouteImport.update({
@@ -93,13 +111,16 @@ export interface FileRoutesByFullPath {
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/app': typeof AppAppRoute
+  '/friends': typeof AppFriendsRoute
   '/groups': typeof AppGroupsRoute
   '/history': typeof AppHistoryRoute
+  '/rooms': typeof AppRoomsRoute
   '/settings': typeof AppSettingsRoute
   '/tasks': typeof AppTasksRoute
   '/focus/$sessionId': typeof FocusSessionIdRoute
   '/groups/$groupId': typeof GroupsGroupIdRoute
   '/review/$sessionId': typeof ReviewSessionIdRoute
+  '/room/$roomId': typeof RoomRoomIdRoute
   '/subject/$subjectId': typeof AppSubjectSubjectIdRoute
 }
 export interface FileRoutesByTo {
@@ -107,13 +128,16 @@ export interface FileRoutesByTo {
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/app': typeof AppAppRoute
+  '/friends': typeof AppFriendsRoute
   '/groups': typeof AppGroupsRoute
   '/history': typeof AppHistoryRoute
+  '/rooms': typeof AppRoomsRoute
   '/settings': typeof AppSettingsRoute
   '/tasks': typeof AppTasksRoute
   '/focus/$sessionId': typeof FocusSessionIdRoute
   '/groups/$groupId': typeof GroupsGroupIdRoute
   '/review/$sessionId': typeof ReviewSessionIdRoute
+  '/room/$roomId': typeof RoomRoomIdRoute
   '/subject/$subjectId': typeof AppSubjectSubjectIdRoute
 }
 export interface FileRoutesById {
@@ -123,13 +147,16 @@ export interface FileRoutesById {
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/_app/app': typeof AppAppRoute
+  '/_app/friends': typeof AppFriendsRoute
   '/_app/groups': typeof AppGroupsRoute
   '/_app/history': typeof AppHistoryRoute
+  '/_app/rooms': typeof AppRoomsRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/tasks': typeof AppTasksRoute
   '/focus/$sessionId': typeof FocusSessionIdRoute
   '/groups/$groupId': typeof GroupsGroupIdRoute
   '/review/$sessionId': typeof ReviewSessionIdRoute
+  '/room/$roomId': typeof RoomRoomIdRoute
   '/_app/subject/$subjectId': typeof AppSubjectSubjectIdRoute
 }
 export interface FileRouteTypes {
@@ -139,13 +166,16 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/login'
     | '/app'
+    | '/friends'
     | '/groups'
     | '/history'
+    | '/rooms'
     | '/settings'
     | '/tasks'
     | '/focus/$sessionId'
     | '/groups/$groupId'
     | '/review/$sessionId'
+    | '/room/$roomId'
     | '/subject/$subjectId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -153,13 +183,16 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/login'
     | '/app'
+    | '/friends'
     | '/groups'
     | '/history'
+    | '/rooms'
     | '/settings'
     | '/tasks'
     | '/focus/$sessionId'
     | '/groups/$groupId'
     | '/review/$sessionId'
+    | '/room/$roomId'
     | '/subject/$subjectId'
   id:
     | '__root__'
@@ -168,13 +201,16 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/login'
     | '/_app/app'
+    | '/_app/friends'
     | '/_app/groups'
     | '/_app/history'
+    | '/_app/rooms'
     | '/_app/settings'
     | '/_app/tasks'
     | '/focus/$sessionId'
     | '/groups/$groupId'
     | '/review/$sessionId'
+    | '/room/$roomId'
     | '/_app/subject/$subjectId'
   fileRoutesById: FileRoutesById
 }
@@ -186,6 +222,7 @@ export interface RootRouteChildren {
   FocusSessionIdRoute: typeof FocusSessionIdRoute
   GroupsGroupIdRoute: typeof GroupsGroupIdRoute
   ReviewSessionIdRoute: typeof ReviewSessionIdRoute
+  RoomRoomIdRoute: typeof RoomRoomIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -216,6 +253,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/room/$roomId': {
+      id: '/room/$roomId'
+      path: '/room/$roomId'
+      fullPath: '/room/$roomId'
+      preLoaderRoute: typeof RoomRoomIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/review/$sessionId': {
@@ -253,6 +297,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/rooms': {
+      id: '/_app/rooms'
+      path: '/rooms'
+      fullPath: '/rooms'
+      preLoaderRoute: typeof AppRoomsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/history': {
       id: '/_app/history'
       path: '/history'
@@ -265,6 +316,13 @@ declare module '@tanstack/react-router' {
       path: '/groups'
       fullPath: '/groups'
       preLoaderRoute: typeof AppGroupsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/friends': {
+      id: '/_app/friends'
+      path: '/friends'
+      fullPath: '/friends'
+      preLoaderRoute: typeof AppFriendsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/app': {
@@ -286,8 +344,10 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppAppRoute: typeof AppAppRoute
+  AppFriendsRoute: typeof AppFriendsRoute
   AppGroupsRoute: typeof AppGroupsRoute
   AppHistoryRoute: typeof AppHistoryRoute
+  AppRoomsRoute: typeof AppRoomsRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppTasksRoute: typeof AppTasksRoute
   AppSubjectSubjectIdRoute: typeof AppSubjectSubjectIdRoute
@@ -295,8 +355,10 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppAppRoute: AppAppRoute,
+  AppFriendsRoute: AppFriendsRoute,
   AppGroupsRoute: AppGroupsRoute,
   AppHistoryRoute: AppHistoryRoute,
+  AppRoomsRoute: AppRoomsRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppTasksRoute: AppTasksRoute,
   AppSubjectSubjectIdRoute: AppSubjectSubjectIdRoute,
@@ -312,6 +374,7 @@ const rootRouteChildren: RootRouteChildren = {
   FocusSessionIdRoute: FocusSessionIdRoute,
   GroupsGroupIdRoute: GroupsGroupIdRoute,
   ReviewSessionIdRoute: ReviewSessionIdRoute,
+  RoomRoomIdRoute: RoomRoomIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
