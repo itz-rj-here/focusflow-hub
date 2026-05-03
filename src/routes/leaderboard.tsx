@@ -20,6 +20,7 @@ export const Route = createFileRoute("/leaderboard")({
 });
 
 type Range = "day" | "week" | "all";
+type Scope = "global" | "friends";
 
 function fmtHours(secs: number) {
   const h = secs / 3600;
@@ -30,11 +31,13 @@ function fmtHours(secs: number) {
 function LeaderboardPage() {
   const { user } = useAuth();
   const [range, setRange] = useState<Range>("week");
+  const [scope, setScope] = useState<Scope>("global");
 
   const { data: rows = [], isLoading } = useQuery({
-    queryKey: ["leaderboard", range],
+    queryKey: ["leaderboard", range, scope, user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_leaderboard", { range_kind: range });
+      const fn = scope === "friends" ? "get_friends_leaderboard" : "get_leaderboard";
+      const { data, error } = await supabase.rpc(fn, { range_kind: range });
       if (error) throw error;
       return data;
     },
@@ -61,6 +64,16 @@ function LeaderboardPage() {
           <p className="mt-1 text-sm text-muted-foreground">Total focus time across public profiles.</p>
         </div>
 
+        {user && (
+          <div className="mb-3 flex justify-center">
+            <Tabs value={scope} onValueChange={(v) => setScope(v as Scope)}>
+              <TabsList>
+                <TabsTrigger value="global">Global</TabsTrigger>
+                <TabsTrigger value="friends">Friends</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+        )}
         <div className="mb-4 flex justify-center">
           <Tabs value={range} onValueChange={(v) => setRange(v as Range)}>
             <TabsList>

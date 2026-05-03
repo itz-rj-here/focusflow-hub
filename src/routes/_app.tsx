@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { LayoutGrid, ListTodo, History, Trophy, Settings as SettingsIcon, Timer, LogOut } from "lucide-react";
+import { LayoutGrid, ListTodo, History, Trophy, Settings as SettingsIcon, Timer, LogOut, Users, Users2 } from "lucide-react";
 
 export const Route = createFileRoute("/_app")({
   component: AppLayout,
@@ -37,6 +37,8 @@ function AppLayout() {
             <NavItem to="/app" icon={LayoutGrid} label="Subjects" />
             <NavItem to="/tasks" icon={ListTodo} label="Tasks" />
             <NavItem to="/history" icon={History} label="History" />
+            <NavItem to="/friends" icon={Users} label="Friends" />
+            <NavItem to="/rooms" icon={Users2} label="Rooms" />
             <NavItem to="/leaderboard" icon={Trophy} label="Leaderboard" />
             <NavItem to="/settings" icon={SettingsIcon} label="Settings" />
             <Button
