@@ -14,11 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      friendships: {
+        Row: {
+          accepted_at: string | null
+          addressee_id: string
+          created_at: string
+          id: string
+          requester_id: string
+          status: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          addressee_id: string
+          created_at?: string
+          id?: string
+          requester_id: string
+          status?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          addressee_id?: string
+          created_at?: string
+          id?: string
+          requester_id?: string
+          status?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           created_at: string
           id: string
+          invite_code: string
           username: string
           visibility: string
         }
@@ -26,6 +54,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           id: string
+          invite_code?: string
           username: string
           visibility?: string
         }
@@ -33,8 +62,106 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           id?: string
+          invite_code?: string
           username?: string
           visibility?: string
+        }
+        Relationships: []
+      }
+      room_invites: {
+        Row: {
+          created_at: string
+          id: string
+          invitee_id: string
+          inviter_id: string
+          room_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invitee_id: string
+          inviter_id: string
+          room_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invitee_id?: string
+          inviter_id?: string
+          room_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_invites_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "study_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      room_participants: {
+        Row: {
+          duration_seconds: number
+          joined_at: string
+          left_at: string | null
+          room_id: string
+          user_id: string
+        }
+        Insert: {
+          duration_seconds?: number
+          joined_at?: string
+          left_at?: string | null
+          room_id: string
+          user_id: string
+        }
+        Update: {
+          duration_seconds?: number
+          joined_at?: string
+          left_at?: string | null
+          room_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_participants_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "study_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      study_rooms: {
+        Row: {
+          ended_at: string | null
+          id: string
+          name: string
+          owner_id: string
+          started_at: string
+          status: string
+          subject_id: string | null
+        }
+        Insert: {
+          ended_at?: string | null
+          id?: string
+          name: string
+          owner_id: string
+          started_at?: string
+          status?: string
+          subject_id?: string | null
+        }
+        Update: {
+          ended_at?: string | null
+          id?: string
+          name?: string
+          owner_id?: string
+          started_at?: string
+          status?: string
+          subject_id?: string | null
         }
         Relationships: []
       }
@@ -156,6 +283,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      are_friends: { Args: { a: string; b: string }; Returns: boolean }
+      generate_invite_code: { Args: never; Returns: string }
+      get_friends_leaderboard: {
+        Args: { range_kind: string }
+        Returns: {
+          avatar_url: string
+          total_seconds: number
+          user_id: string
+          username: string
+        }[]
+      }
       get_leaderboard: {
         Args: { range_kind: string }
         Returns: {
@@ -164,6 +302,10 @@ export type Database = {
           user_id: string
           username: string
         }[]
+      }
+      is_room_member: {
+        Args: { _room_id: string; _user_id: string }
+        Returns: boolean
       }
     }
     Enums: {
