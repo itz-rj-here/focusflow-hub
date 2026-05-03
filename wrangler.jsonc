@@ -1,11 +1,10 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "tanstack-start-app",
+  "name": "focusflow",
   "compatibility_date": "2025-09-24",
   "compatibility_flags": ["nodejs_compat"],
-  "main": "dist/server/index.js",
-  "assets": {
-    "binding": "ASSETS",
-    "directory": "dist/client"
+  "main": "@tanstack/react-start/server-entry",
+  "site": {
+    "bucket": "dist/client"
   }
 }
