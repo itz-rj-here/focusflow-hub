@@ -56,7 +56,9 @@ function FocusPage() {
       setSubjectColor(data.subjects?.color_code ?? null);
       setStartedAt(new Date(data.started_at).getTime());
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [sessionId, navigate]);
 
   useEffect(() => {
@@ -64,7 +66,9 @@ function FocusPage() {
     const update = () => setElapsed(Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
     update();
     tickRef.current = setInterval(update, 1000);
-    return () => { if (tickRef.current) clearInterval(tickRef.current); };
+    return () => {
+      if (tickRef.current) clearInterval(tickRef.current);
+    };
   }, [startedAt]);
 
   const endSession = async () => {
@@ -74,12 +78,19 @@ function FocusPage() {
       .from("study_sessions")
       .update({ ended_at: new Date().toISOString(), duration_seconds: duration })
       .eq("id", sessionId);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     navigate({ to: "/review/$sessionId", params: { sessionId } });
   };
 
   if (!taskTitle) {
-    return <div className="grid min-h-screen place-items-center text-sm text-muted-foreground">Loading focus session…</div>;
+    return (
+      <div className="grid min-h-screen place-items-center text-sm text-muted-foreground">
+        Loading focus session…
+      </div>
+    );
   }
 
   return (
@@ -87,10 +98,11 @@ function FocusPage() {
       <div className="flex flex-col items-center justify-center gap-12 text-center">
         <div className="flex flex-col items-center gap-3">
           {subjectName && (
-            <span
-              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-3 py-1 text-xs text-muted-foreground backdrop-blur"
-            >
-              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: subjectColor ?? "var(--primary)" }} />
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-3 py-1 text-xs text-muted-foreground backdrop-blur">
+              <span
+                className="h-2 w-2 rounded-full"
+                style={{ backgroundColor: subjectColor ?? "var(--primary)" }}
+              />
               {subjectName}
             </span>
           )}

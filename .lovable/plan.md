@@ -18,6 +18,7 @@ A sleek dark-mode study app: Google login, to-do list, full-screen stopwatch foc
 ## Database Schema (Lovable Cloud)
 
 **profiles** — one row per user, auto-created on signup via trigger
+
 - `id` (uuid, FK → auth.users, PK)
 - `username` (text, unique)
 - `avatar_url` (text)
@@ -25,12 +26,15 @@ A sleek dark-mode study app: Google login, to-do list, full-screen stopwatch foc
 - `created_at`
 
 **todos**
+
 - `id`, `user_id` (FK), `title`, `completed` (bool), `created_at`, `completed_at`
 
 **study_sessions**
+
 - `id`, `user_id` (FK), `todo_id` (FK, nullable), `task_title` (text snapshot), `duration_seconds` (int), `started_at`, `ended_at`
 
 **RLS** (strict):
+
 - `todos`, `study_sessions`: owner-only select/insert/update/delete
 - `profiles`: owner can update; anyone authenticated can SELECT only rows where `visibility = 'public'` (plus their own row)
 - Leaderboard reads via a `SECURITY DEFINER` function that aggregates `study_sessions` for public profiles only — never exposes private user data
@@ -74,6 +78,7 @@ A sleek dark-mode study app: Google login, to-do list, full-screen stopwatch foc
 ## Server Functions (TanStack `createServerFn`)
 
 All use `requireSupabaseAuth` middleware so RLS applies as the user:
+
 - `listTodos`, `createTodo`, `updateTodo`, `deleteTodo`, `toggleTodo`
 - `startSession({ todoId })` → returns sessionId
 - `endSession({ sessionId, save: bool, completeTodo: bool })`
@@ -82,6 +87,7 @@ All use `requireSupabaseAuth` middleware so RLS applies as the user:
 - `updateProfile({ username, visibility })`
 
 Public (no auth) server function for the leaderboard:
+
 - `getLeaderboard({ range: 'day'|'week'|'all' })` — calls a SECURITY DEFINER SQL function that joins public profiles + summed sessions
 
 ## Out of Scope (v1)

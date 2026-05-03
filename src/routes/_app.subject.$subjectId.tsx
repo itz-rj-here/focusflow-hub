@@ -5,7 +5,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from "recharts";
 import { Play, ArrowLeft, ListTodo } from "lucide-react";
 import { toast } from "sonner";
@@ -34,7 +41,11 @@ function SubjectAnalyticsPage() {
   const { data: subject } = useQuery({
     queryKey: ["subject", subjectId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("subjects").select("*").eq("id", subjectId).single();
+      const { data, error } = await supabase
+        .from("subjects")
+        .select("*")
+        .eq("id", subjectId)
+        .single();
       if (error) throw error;
       return data as Subject;
     },
@@ -56,23 +67,29 @@ function SubjectAnalyticsPage() {
   });
 
   const { totalSecs, todaySecs, weekSecs, dailyChart, weeklyChart } = useMemo(() => {
-    let total = 0, today = 0, week = 0;
+    let total = 0,
+      today = 0,
+      week = 0;
     const now = new Date();
-    const startOfToday = new Date(now); startOfToday.setHours(0, 0, 0, 0);
+    const startOfToday = new Date(now);
+    startOfToday.setHours(0, 0, 0, 0);
     const dow = now.getDay();
     const startOfWeek = new Date(startOfToday);
     startOfWeek.setDate(startOfToday.getDate() - ((dow + 6) % 7));
 
     const dayBuckets = new Map<string, number>();
     for (let i = 13; i >= 0; i--) {
-      const d = new Date(now); d.setDate(d.getDate() - i);
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
       dayBuckets.set(d.toISOString().slice(0, 10), 0);
     }
     const weekBuckets = new Map<string, number>();
     for (let i = 7; i >= 0; i--) {
-      const d = new Date(now); d.setDate(d.getDate() - i * 7);
+      const d = new Date(now);
+      d.setDate(d.getDate() - i * 7);
       const wDow = d.getDay();
-      const monday = new Date(d); monday.setDate(d.getDate() - ((wDow + 6) % 7));
+      const monday = new Date(d);
+      monday.setDate(d.getDate() - ((wDow + 6) % 7));
       monday.setHours(0, 0, 0, 0);
       weekBuckets.set(monday.toISOString().slice(0, 10), 0);
     }
@@ -84,12 +101,15 @@ function SubjectAnalyticsPage() {
       if (ended >= startOfToday) today += s.duration_seconds;
       if (ended >= startOfWeek) week += s.duration_seconds;
       const dKey = ended.toISOString().slice(0, 10);
-      if (dayBuckets.has(dKey)) dayBuckets.set(dKey, (dayBuckets.get(dKey) || 0) + s.duration_seconds);
+      if (dayBuckets.has(dKey))
+        dayBuckets.set(dKey, (dayBuckets.get(dKey) || 0) + s.duration_seconds);
       const wDow = ended.getDay();
-      const monday = new Date(ended); monday.setDate(ended.getDate() - ((wDow + 6) % 7));
+      const monday = new Date(ended);
+      monday.setDate(ended.getDate() - ((wDow + 6) % 7));
       monday.setHours(0, 0, 0, 0);
       const wKey = monday.toISOString().slice(0, 10);
-      if (weekBuckets.has(wKey)) weekBuckets.set(wKey, (weekBuckets.get(wKey) || 0) + s.duration_seconds);
+      if (weekBuckets.has(wKey))
+        weekBuckets.set(wKey, (weekBuckets.get(wKey) || 0) + s.duration_seconds);
     });
 
     return {
@@ -101,7 +121,8 @@ function SubjectAnalyticsPage() {
         minutes: Math.round(v / 60),
       })),
       weeklyChart: Array.from(weekBuckets.entries()).map(([k, v]) => ({
-        label: "Wk " + new Date(k).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+        label:
+          "Wk " + new Date(k).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
         minutes: Math.round(v / 60),
       })),
     };
@@ -130,7 +151,10 @@ function SubjectAnalyticsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <Link to="/app" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+        <Link
+          to="/app"
+          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+        >
           <ArrowLeft className="h-3.5 w-3.5" /> All subjects
         </Link>
         <div className="mt-2 flex flex-wrap items-center gap-3">
@@ -144,14 +168,20 @@ function SubjectAnalyticsPage() {
           )}
           <div className="flex-1">
             <h1 className="text-2xl font-semibold tracking-tight">{subject?.name ?? "Subject"}</h1>
-            <p className="text-sm text-muted-foreground">Analytics & focus history for this subject.</p>
+            <p className="text-sm text-muted-foreground">
+              Analytics & focus history for this subject.
+            </p>
           </div>
           <Link to="/tasks">
             <Button variant="outline" size="sm" className="gap-1.5">
               <ListTodo className="h-4 w-4" /> Manage tasks
             </Button>
           </Link>
-          <Button onClick={() => startSession.mutate()} disabled={startSession.isPending} className="gap-1.5">
+          <Button
+            onClick={() => startSession.mutate()}
+            disabled={startSession.isPending}
+            className="gap-1.5"
+          >
             <Play className="h-4 w-4" /> Quick start
           </Button>
         </div>
@@ -179,10 +209,33 @@ function SubjectAnalyticsPage() {
             <ResponsiveContainer>
               <BarChart data={dailyChart}>
                 <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="label" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
-                <Tooltip contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }} cursor={{ fill: "var(--accent)", opacity: 0.3 }} />
-                <Bar dataKey="minutes" fill={subject?.color_code ?? "var(--primary)"} radius={[6, 6, 0, 0]} />
+                <XAxis
+                  dataKey="label"
+                  stroke="var(--muted-foreground)"
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis
+                  stroke="var(--muted-foreground)"
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <Tooltip
+                  contentStyle={{
+                    background: "var(--popover)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 8,
+                    fontSize: 12,
+                  }}
+                  cursor={{ fill: "var(--accent)", opacity: 0.3 }}
+                />
+                <Bar
+                  dataKey="minutes"
+                  fill={subject?.color_code ?? "var(--primary)"}
+                  radius={[6, 6, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -193,10 +246,33 @@ function SubjectAnalyticsPage() {
             <ResponsiveContainer>
               <BarChart data={weeklyChart}>
                 <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="label" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
-                <Tooltip contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }} cursor={{ fill: "var(--accent)", opacity: 0.3 }} />
-                <Bar dataKey="minutes" fill={subject?.color_code ?? "var(--primary)"} radius={[6, 6, 0, 0]} />
+                <XAxis
+                  dataKey="label"
+                  stroke="var(--muted-foreground)"
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis
+                  stroke="var(--muted-foreground)"
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <Tooltip
+                  contentStyle={{
+                    background: "var(--popover)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 8,
+                    fontSize: 12,
+                  }}
+                  cursor={{ fill: "var(--accent)", opacity: 0.3 }}
+                />
+                <Bar
+                  dataKey="minutes"
+                  fill={subject?.color_code ?? "var(--primary)"}
+                  radius={[6, 6, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -217,16 +293,28 @@ function SubjectAnalyticsPage() {
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground">Loading…</TableCell></TableRow>
-            ) : sessions.length === 0 ? (
-              <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground">No sessions for this subject yet.</TableCell></TableRow>
-            ) : sessions.map((s) => (
-              <TableRow key={s.id}>
-                <TableCell className="font-medium">{s.task_title}</TableCell>
-                <TableCell className="text-muted-foreground">{s.ended_at ? new Date(s.ended_at).toLocaleString() : "—"}</TableCell>
-                <TableCell className="text-right font-mono">{fmt(s.duration_seconds)}</TableCell>
+              <TableRow>
+                <TableCell colSpan={3} className="text-center text-muted-foreground">
+                  Loading…
+                </TableCell>
               </TableRow>
-            ))}
+            ) : sessions.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={3} className="text-center text-muted-foreground">
+                  No sessions for this subject yet.
+                </TableCell>
+              </TableRow>
+            ) : (
+              sessions.map((s) => (
+                <TableRow key={s.id}>
+                  <TableCell className="font-medium">{s.task_title}</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {s.ended_at ? new Date(s.ended_at).toLocaleString() : "—"}
+                  </TableCell>
+                  <TableCell className="text-right font-mono">{fmt(s.duration_seconds)}</TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </Card>

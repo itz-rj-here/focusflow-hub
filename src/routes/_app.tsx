@@ -3,7 +3,16 @@ import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { LayoutGrid, ListTodo, History, Trophy, Settings as SettingsIcon, Timer, LogOut } from "lucide-react";
+import {
+  LayoutGrid,
+  ListTodo,
+  History,
+  Trophy,
+  Settings as SettingsIcon,
+  Timer,
+  LogOut,
+  Users,
+} from "lucide-react";
 
 export const Route = createFileRoute("/_app")({
   component: AppLayout,
@@ -19,7 +28,9 @@ function AppLayout() {
 
   if (loading || !user) {
     return (
-      <div className="grid min-h-screen place-items-center text-sm text-muted-foreground">Loading…</div>
+      <div className="grid min-h-screen place-items-center text-sm text-muted-foreground">
+        Loading…
+      </div>
     );
   }
 
@@ -36,13 +47,17 @@ function AppLayout() {
           <nav className="flex items-center gap-1">
             <NavItem to="/app" icon={LayoutGrid} label="Subjects" />
             <NavItem to="/tasks" icon={ListTodo} label="Tasks" />
+            <NavItem to="/groups" icon={Users} label="Groups" />
             <NavItem to="/history" icon={History} label="History" />
             <NavItem to="/leaderboard" icon={Trophy} label="Leaderboard" />
             <NavItem to="/settings" icon={SettingsIcon} label="Settings" />
             <Button
               variant="ghost"
               size="sm"
-              onClick={async () => { await signOut(); navigate({ to: "/" }); }}
+              onClick={async () => {
+                await signOut();
+                navigate({ to: "/" });
+              }}
               className="ml-2"
               aria-label="Sign out"
             >
@@ -58,9 +73,21 @@ function AppLayout() {
   );
 }
 
-function NavItem({ to, icon: Icon, label }: { to: string; icon: React.ComponentType<{ className?: string }>; label: string }) {
+function NavItem({
+  to,
+  icon: Icon,
+  label,
+}: {
+  to: string;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+}) {
   return (
-    <Link to={to} activeProps={{ className: "bg-accent text-accent-foreground" }} className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground">
+    <Link
+      to={to}
+      activeProps={{ className: "bg-accent text-accent-foreground" }}
+      className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+    >
       <Icon className="h-4 w-4" />
       <span className="hidden sm:inline">{label}</span>
     </Link>

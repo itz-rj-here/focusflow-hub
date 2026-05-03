@@ -8,7 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card } from "@/components/ui/card";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { Play, Plus, Trash2, Pencil, Check, X } from "lucide-react";
 import { toast } from "sonner";
@@ -36,7 +40,10 @@ function TasksPage() {
   const { data: subjects = [] } = useQuery({
     queryKey: ["subjects", userId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("subjects").select("*").order("created_at", { ascending: true });
+      const { data, error } = await supabase
+        .from("subjects")
+        .select("*")
+        .order("created_at", { ascending: true });
       if (error) throw error;
       return data as Subject[];
     },
@@ -50,7 +57,8 @@ function TasksPage() {
     queryKey: ["todos", userId, "all"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("todos").select("*")
+        .from("todos")
+        .select("*")
         .order("completed", { ascending: true })
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -76,7 +84,9 @@ function TasksPage() {
     mutationFn: async () => {
       if (!newSubjectId) throw new Error("Pick a subject first");
       const { error } = await supabase.from("todos").insert({
-        user_id: userId, title: newTitle.trim(), subject_id: newSubjectId,
+        user_id: userId,
+        title: newTitle.trim(),
+        subject_id: newSubjectId,
       });
       if (error) throw error;
     },
@@ -92,7 +102,10 @@ function TasksPage() {
     mutationFn: async (t: Todo) => {
       const { error } = await supabase
         .from("todos")
-        .update({ completed: !t.completed, completed_at: !t.completed ? new Date().toISOString() : null })
+        .update({
+          completed: !t.completed,
+          completed_at: !t.completed ? new Date().toISOString() : null,
+        })
         .eq("id", t.id);
       if (error) throw error;
     },
@@ -161,7 +174,10 @@ function TasksPage() {
 
       <Card className="p-4">
         <form
-          onSubmit={(e) => { e.preventDefault(); if (newTitle.trim()) addTodo.mutate(); }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (newTitle.trim()) addTodo.mutate();
+          }}
           className="flex flex-col gap-2 sm:flex-row sm:items-center"
         >
           <Input
@@ -171,33 +187,48 @@ function TasksPage() {
             className="h-11 flex-1"
           />
           <Select value={newSubjectId} onValueChange={setNewSubjectId}>
-            <SelectTrigger className="h-11 sm:w-44"><SelectValue placeholder="Subject" /></SelectTrigger>
+            <SelectTrigger className="h-11 sm:w-44">
+              <SelectValue placeholder="Subject" />
+            </SelectTrigger>
             <SelectContent>
               {subjects.map((s) => (
                 <SelectItem key={s.id} value={s.id}>
                   <span className="inline-flex items-center gap-2">
-                    <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: s.color_code }} />
+                    <span
+                      className="h-2.5 w-2.5 rounded-full"
+                      style={{ backgroundColor: s.color_code }}
+                    />
                     {s.name}
                   </span>
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          <Button type="submit" size="lg" disabled={!newTitle.trim() || !newSubjectId || addTodo.isPending}>
-            <Plus className="h-4 w-4" /><span className="ml-1 hidden sm:inline">Add</span>
+          <Button
+            type="submit"
+            size="lg"
+            disabled={!newTitle.trim() || !newSubjectId || addTodo.isPending}
+          >
+            <Plus className="h-4 w-4" />
+            <span className="ml-1 hidden sm:inline">Add</span>
           </Button>
         </form>
       </Card>
 
       <div className="flex flex-wrap items-center gap-3">
         <Select value={filterSubject} onValueChange={setFilterSubject}>
-          <SelectTrigger className="h-9 w-48"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="h-9 w-48">
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All subjects</SelectItem>
             {subjects.map((s) => (
               <SelectItem key={s.id} value={s.id}>
                 <span className="inline-flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: s.color_code }} />
+                  <span
+                    className="h-2.5 w-2.5 rounded-full"
+                    style={{ backgroundColor: s.color_code }}
+                  />
                   {s.name}
                 </span>
               </SelectItem>
@@ -239,7 +270,15 @@ function TasksPage() {
 }
 
 function TodoRow({
-  todo, subject, subjects, onToggle, onDelete, onRename, onReassign, onStart, starting,
+  todo,
+  subject,
+  subjects,
+  onToggle,
+  onDelete,
+  onRename,
+  onReassign,
+  onStart,
+  starting,
 }: {
   todo: Todo;
   subject?: Subject;
@@ -257,17 +296,43 @@ function TodoRow({
 
   return (
     <li>
-      <Card className={`flex flex-wrap items-center gap-3 p-3 ${todo.completed ? "opacity-60" : ""}`}>
+      <Card
+        className={`flex flex-wrap items-center gap-3 p-3 ${todo.completed ? "opacity-60" : ""}`}
+      >
         <Checkbox checked={todo.completed} onCheckedChange={onToggle} className="h-5 w-5" />
         {editing ? (
           <div className="flex flex-1 items-center gap-2">
-            <Input value={draft} onChange={(e) => setDraft(e.target.value)} className="h-9" autoFocus
-              onKeyDown={(e) => { if (e.key === "Enter") { onRename(draft.trim() || todo.title); setEditing(false); } if (e.key === "Escape") setEditing(false); }} />
-            <Button size="icon" variant="ghost" onClick={() => { onRename(draft.trim() || todo.title); setEditing(false); }}><Check className="h-4 w-4" /></Button>
-            <Button size="icon" variant="ghost" onClick={() => setEditing(false)}><X className="h-4 w-4" /></Button>
+            <Input
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              className="h-9"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  onRename(draft.trim() || todo.title);
+                  setEditing(false);
+                }
+                if (e.key === "Escape") setEditing(false);
+              }}
+            />
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => {
+                onRename(draft.trim() || todo.title);
+                setEditing(false);
+              }}
+            >
+              <Check className="h-4 w-4" />
+            </Button>
+            <Button size="icon" variant="ghost" onClick={() => setEditing(false)}>
+              <X className="h-4 w-4" />
+            </Button>
           </div>
         ) : (
-          <span className={`flex-1 text-sm ${todo.completed ? "line-through" : ""}`}>{todo.title}</span>
+          <span className={`flex-1 text-sm ${todo.completed ? "line-through" : ""}`}>
+            {todo.title}
+          </span>
         )}
 
         {!editing && (
@@ -276,17 +341,25 @@ function TodoRow({
               <SelectValue>
                 {subject ? (
                   <span className="inline-flex items-center gap-1.5">
-                    <span className="h-2 w-2 rounded-full" style={{ backgroundColor: subject.color_code }} />
+                    <span
+                      className="h-2 w-2 rounded-full"
+                      style={{ backgroundColor: subject.color_code }}
+                    />
                     {subject.name}
                   </span>
-                ) : "—"}
+                ) : (
+                  "—"
+                )}
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {subjects.map((s) => (
                 <SelectItem key={s.id} value={s.id}>
                   <span className="inline-flex items-center gap-2">
-                    <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: s.color_code }} />
+                    <span
+                      className="h-2.5 w-2.5 rounded-full"
+                      style={{ backgroundColor: s.color_code }}
+                    />
                     {s.name}
                   </span>
                 </SelectItem>
@@ -302,8 +375,12 @@ function TodoRow({
         )}
         {!editing && (
           <>
-            <Button size="icon" variant="ghost" onClick={() => setEditing(true)} aria-label="Edit"><Pencil className="h-4 w-4" /></Button>
-            <Button size="icon" variant="ghost" onClick={onDelete} aria-label="Delete"><Trash2 className="h-4 w-4" /></Button>
+            <Button size="icon" variant="ghost" onClick={() => setEditing(true)} aria-label="Edit">
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button size="icon" variant="ghost" onClick={onDelete} aria-label="Delete">
+              <Trash2 className="h-4 w-4" />
+            </Button>
           </>
         )}
       </Card>

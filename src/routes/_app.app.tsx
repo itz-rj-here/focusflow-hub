@@ -7,16 +7,28 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
-  RadioGroup, RadioGroupItem,
-} from "@/components/ui/radio-group";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { Plus, FolderOpen, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -30,8 +42,14 @@ export const Route = createFileRoute("/_app/app")({
 type Subject = Tables<"subjects">;
 
 const PALETTE = [
-  "#6366f1", "#ec4899", "#f59e0b", "#10b981",
-  "#06b6d4", "#8b5cf6", "#ef4444", "#84cc16",
+  "#6366f1",
+  "#ec4899",
+  "#f59e0b",
+  "#10b981",
+  "#06b6d4",
+  "#8b5cf6",
+  "#ef4444",
+  "#84cc16",
 ];
 
 function HomePage() {
@@ -48,7 +66,9 @@ function HomePage() {
     queryKey: ["subjects", userId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("subjects").select("*").order("created_at", { ascending: true });
+        .from("subjects")
+        .select("*")
+        .order("created_at", { ascending: true });
       if (error) throw error;
       return data as Subject[];
     },
@@ -81,12 +101,16 @@ function HomePage() {
   const create = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from("subjects").insert({
-        user_id: userId, name: name.trim(), color_code: color,
+        user_id: userId,
+        name: name.trim(),
+        color_code: color,
       });
       if (error) throw error;
     },
     onSuccess: () => {
-      setName(""); setColor(PALETTE[0]); setOpen(false);
+      setName("");
+      setColor(PALETTE[0]);
+      setOpen(false);
       qc.invalidateQueries({ queryKey: ["subjects", userId] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -97,28 +121,45 @@ function HomePage() {
       <div className="flex items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Subjects</h1>
-          <p className="text-sm text-muted-foreground">Pick a subject to view analytics or start focusing.</p>
+          <p className="text-sm text-muted-foreground">
+            Pick a subject to view analytics or start focusing.
+          </p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" className="gap-1.5"><Plus className="h-4 w-4" />New subject</Button>
+            <Button size="sm" className="gap-1.5">
+              <Plus className="h-4 w-4" />
+              New subject
+            </Button>
           </DialogTrigger>
           <DialogContent>
-            <DialogHeader><DialogTitle>New subject</DialogTitle></DialogHeader>
+            <DialogHeader>
+              <DialogTitle>New subject</DialogTitle>
+            </DialogHeader>
             <form
-              onSubmit={(e) => { e.preventDefault(); if (name.trim()) create.mutate(); }}
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (name.trim()) create.mutate();
+              }}
               className="space-y-4"
             >
               <div className="space-y-2">
                 <label className="text-sm font-medium">Name</label>
-                <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Calculus" autoFocus />
+                <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Calculus"
+                  autoFocus
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Color</label>
                 <ColorPicker value={color} onChange={setColor} />
               </div>
               <DialogFooter>
-                <Button type="submit" disabled={!name.trim() || create.isPending}>Create</Button>
+                <Button type="submit" disabled={!name.trim() || create.isPending}>
+                  Create
+                </Button>
               </DialogFooter>
             </form>
           </DialogContent>
@@ -130,7 +171,9 @@ function HomePage() {
       ) : subjects.length === 0 ? (
         <Card className="p-12 text-center">
           <FolderOpen className="mx-auto h-8 w-8 text-muted-foreground" />
-          <p className="mt-3 text-sm text-muted-foreground">No subjects yet. Create one to get started.</p>
+          <p className="mt-3 text-sm text-muted-foreground">
+            No subjects yet. Create one to get started.
+          </p>
         </Card>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -140,11 +183,7 @@ function HomePage() {
             const mins = Math.floor((st.secs % 3600) / 60);
             return (
               <div key={s.id} className="relative">
-                <Link
-                  to="/subject/$subjectId"
-                  params={{ subjectId: s.id }}
-                  className="block"
-                >
+                <Link to="/subject/$subjectId" params={{ subjectId: s.id }} className="block">
                   <Card className="relative overflow-hidden p-5 transition hover:border-primary/40 hover:shadow-lg">
                     <div
                       className="absolute inset-x-0 top-0 h-1"
@@ -165,7 +204,9 @@ function HomePage() {
                       </div>
                     </div>
                     <div className="mt-4 flex items-baseline justify-between">
-                      <span className="text-xs uppercase tracking-wider text-muted-foreground">Focus time</span>
+                      <span className="text-xs uppercase tracking-wider text-muted-foreground">
+                        Focus time
+                      </span>
                       <span className="font-mono text-sm tabular-nums">
                         {hours > 0 ? `${hours}h ${mins}m` : `${mins}m`}
                       </span>
@@ -239,7 +280,10 @@ function EditSubjectDialog({ subject, onClose }: { subject: Subject | null; onCl
   const [color, setColor] = useState(PALETTE[0]);
 
   useEffect(() => {
-    if (subject) { setName(subject.name); setColor(subject.color_code); }
+    if (subject) {
+      setName(subject.name);
+      setColor(subject.color_code);
+    }
   }, [subject]);
 
   const update = useMutation({
@@ -265,13 +309,21 @@ function EditSubjectDialog({ subject, onClose }: { subject: Subject | null; onCl
       open={!!subject}
       onOpenChange={(o) => {
         if (!o) onClose();
-        else if (subject) { setName(subject.name); setColor(subject.color_code); }
+        else if (subject) {
+          setName(subject.name);
+          setColor(subject.color_code);
+        }
       }}
     >
       <DialogContent>
-        <DialogHeader><DialogTitle>Edit subject</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle>Edit subject</DialogTitle>
+        </DialogHeader>
         <form
-          onSubmit={(e) => { e.preventDefault(); if (name.trim()) update.mutate(); }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (name.trim()) update.mutate();
+          }}
           className="space-y-4"
         >
           <div className="space-y-2">
@@ -283,8 +335,12 @@ function EditSubjectDialog({ subject, onClose }: { subject: Subject | null; onCl
             <ColorPicker value={color} onChange={setColor} />
           </div>
           <DialogFooter>
-            <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
-            <Button type="submit" disabled={!name.trim() || update.isPending}>Save</Button>
+            <Button type="button" variant="ghost" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={!name.trim() || update.isPending}>
+              Save
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -293,7 +349,10 @@ function EditSubjectDialog({ subject, onClose }: { subject: Subject | null; onCl
 }
 
 function DeleteSubjectDialog({
-  subject, subjects, stats, onClose,
+  subject,
+  subjects,
+  stats,
+  onClose,
 }: {
   subject: Subject | null;
   subjects: Subject[];
@@ -308,11 +367,12 @@ function DeleteSubjectDialog({
   // Default reassign target: first General-named subject (excluding self), else first other
   const otherSubjects = subjects.filter((s) => s.id !== subject?.id);
   const defaultTarget =
-    otherSubjects.find((s) => s.name.toLowerCase() === "general")?.id ??
-    otherSubjects[0]?.id ?? "";
+    otherSubjects.find((s) => s.name.toLowerCase() === "general")?.id ?? otherSubjects[0]?.id ?? "";
   const [targetId, setTargetId] = useState<string>(defaultTarget);
 
-  const st = subject ? stats[subject.id] ?? { open: 0, secs: 0, total: 0 } : { open: 0, secs: 0, total: 0 };
+  const st = subject
+    ? (stats[subject.id] ?? { open: 0, secs: 0, total: 0 })
+    : { open: 0, secs: 0, total: 0 };
   const taskCount = st.total;
   const hasOthers = otherSubjects.length > 0;
 
@@ -323,26 +383,37 @@ function DeleteSubjectDialog({
         if (!targetId) throw new Error("Pick a subject to reassign to");
         // Reassign todos and sessions
         const { error: e1 } = await supabase
-          .from("todos").update({ subject_id: targetId })
-          .eq("subject_id", subject.id).eq("user_id", userId);
+          .from("todos")
+          .update({ subject_id: targetId })
+          .eq("subject_id", subject.id)
+          .eq("user_id", userId);
         if (e1) throw e1;
         const { error: e2 } = await supabase
-          .from("study_sessions").update({ subject_id: targetId })
-          .eq("subject_id", subject.id).eq("user_id", userId);
+          .from("study_sessions")
+          .update({ subject_id: targetId })
+          .eq("subject_id", subject.id)
+          .eq("user_id", userId);
         if (e2) throw e2;
       } else {
         // Cascade delete
         const { error: e1 } = await supabase
-          .from("todos").delete()
-          .eq("subject_id", subject.id).eq("user_id", userId);
+          .from("todos")
+          .delete()
+          .eq("subject_id", subject.id)
+          .eq("user_id", userId);
         if (e1) throw e1;
         const { error: e2 } = await supabase
-          .from("study_sessions").delete()
-          .eq("subject_id", subject.id).eq("user_id", userId);
+          .from("study_sessions")
+          .delete()
+          .eq("subject_id", subject.id)
+          .eq("user_id", userId);
         if (e2) throw e2;
       }
       const { error: e3 } = await supabase
-        .from("subjects").delete().eq("id", subject.id).eq("user_id", userId);
+        .from("subjects")
+        .delete()
+        .eq("id", subject.id)
+        .eq("user_id", userId);
       if (e3) throw e3;
     },
     onSuccess: () => {
@@ -361,7 +432,10 @@ function DeleteSubjectDialog({
       open={!!subject}
       onOpenChange={(o) => {
         if (!o) onClose();
-        else { setMode(hasOthers ? "reassign" : "cascade"); setTargetId(defaultTarget); }
+        else {
+          setMode(hasOthers ? "reassign" : "cascade");
+          setTargetId(defaultTarget);
+        }
       }}
     >
       <DialogContent>
@@ -373,22 +447,35 @@ function DeleteSubjectDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <RadioGroup value={mode} onValueChange={(v) => setMode(v as "reassign" | "cascade")} className="space-y-3">
-          <label className={`flex items-start gap-3 rounded-md border border-border p-3 ${!hasOthers ? "opacity-50" : "cursor-pointer hover:bg-accent/30"}`}>
+        <RadioGroup
+          value={mode}
+          onValueChange={(v) => setMode(v as "reassign" | "cascade")}
+          className="space-y-3"
+        >
+          <label
+            className={`flex items-start gap-3 rounded-md border border-border p-3 ${!hasOthers ? "opacity-50" : "cursor-pointer hover:bg-accent/30"}`}
+          >
             <RadioGroupItem value="reassign" disabled={!hasOthers} className="mt-0.5" />
             <div className="flex-1 space-y-2">
               <div>
                 <p className="text-sm font-medium">Reassign tasks & sessions</p>
-                <p className="text-xs text-muted-foreground">Move everything to another subject and keep your history.</p>
+                <p className="text-xs text-muted-foreground">
+                  Move everything to another subject and keep your history.
+                </p>
               </div>
               {mode === "reassign" && hasOthers && (
                 <Select value={targetId} onValueChange={setTargetId}>
-                  <SelectTrigger className="h-9"><SelectValue placeholder="Choose a subject" /></SelectTrigger>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Choose a subject" />
+                  </SelectTrigger>
                   <SelectContent>
                     {otherSubjects.map((s) => (
                       <SelectItem key={s.id} value={s.id}>
                         <span className="inline-flex items-center gap-2">
-                          <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: s.color_code }} />
+                          <span
+                            className="h-2.5 w-2.5 rounded-full"
+                            style={{ backgroundColor: s.color_code }}
+                          />
                           {s.name}
                         </span>
                       </SelectItem>
@@ -403,13 +490,17 @@ function DeleteSubjectDialog({
             <RadioGroupItem value="cascade" className="mt-0.5" />
             <div className="flex-1">
               <p className="text-sm font-medium text-destructive">Delete everything</p>
-              <p className="text-xs text-muted-foreground">Permanently remove all tasks and focus sessions for this subject.</p>
+              <p className="text-xs text-muted-foreground">
+                Permanently remove all tasks and focus sessions for this subject.
+              </p>
             </div>
           </label>
         </RadioGroup>
 
         <DialogFooter>
-          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button variant="ghost" onClick={onClose}>
+            Cancel
+          </Button>
           <Button
             variant="destructive"
             onClick={() => submit.mutate()}
