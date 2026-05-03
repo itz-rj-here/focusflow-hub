@@ -18,7 +18,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Listener FIRST, then read existing session
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s);
       setLoading(false);
@@ -42,7 +41,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user: session?.user ?? null, session, loading, signInWithGoogle, signOut }}>
+    <AuthContext.Provider
+      value={{ user: session?.user ?? null, session, loading, signInWithGoogle, signOut }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -8,7 +8,10 @@ export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
       { title: "Sign in — FocusFlow" },
-      { name: "description", content: "Sign in to FocusFlow with Google to track your study sessions." },
+      {
+        name: "description",
+        content: "Sign in to FocusFlow with Google to track your study sessions.",
+      },
     ],
   }),
   component: LoginPage,
@@ -23,7 +26,7 @@ function LoginPage() {
 
   return (
     <main className="bg-radial-glow grid min-h-screen place-items-center px-6">
-      <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-8 shadow-2xl">
+      <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-8 shadow-2xl card-royal">
         <Link to="/" className="mb-6 flex items-center justify-center gap-2">
           <div className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
             <Timer className="h-4 w-4" />
