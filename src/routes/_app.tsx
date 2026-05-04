@@ -12,6 +12,7 @@ import {
   Timer,
   LogOut,
   Users,
+  Users2,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_app")({
@@ -47,7 +48,7 @@ function AppLayout() {
           <nav className="flex items-center gap-1">
             <NavItem to="/app" icon={LayoutGrid} label="Subjects" />
             <NavItem to="/tasks" icon={ListTodo} label="Tasks" />
-            <NavItem to="/groups" icon={Users} label="Groups" />
+            
             <NavItem to="/history" icon={History} label="History" />
             <NavItem to="/friends" icon={Users} label="Friends" />
             <NavItem to="/rooms" icon={Users2} label="Rooms" />
