@@ -16,7 +16,7 @@ export const Route = createFileRoute("/_app/friends")({
   component: FriendsPage,
 });
 
-type Profile = { id: string; username: string; avatar_url: string | null; invite_code: string };
+type Profile = { id: string; username: string; avatar_url: string | null };
 
 function FriendsPage() {
   const { user } = useAuth();
@@ -29,9 +29,9 @@ function FriendsPage() {
   const { data: myProfile } = useQuery({
     queryKey: ["my-profile-invite", me],
     queryFn: async () => {
-      const { data, error } = await supabase.from("profiles").select("invite_code,username").eq("id", me).single();
+      const { data, error } = await supabase.rpc("get_my_invite_code");
       if (error) throw error;
-      return data;
+      return { invite_code: data as unknown as string };
     },
   });
 
@@ -56,7 +56,7 @@ function FriendsPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id,username,avatar_url,invite_code")
+        .select("id,username,avatar_url")
         .in("id", otherIds);
       if (error) throw error;
       return data as Profile[];
@@ -83,7 +83,7 @@ function FriendsPage() {
     if (q.length < 2) { setSearchResults([]); return; }
     const { data, error } = await supabase
       .from("profiles")
-      .select("id,username,avatar_url,invite_code")
+      .select("id,username,avatar_url")
       .ilike("username", `%${q}%`)
       .neq("id", me)
       .limit(10);
@@ -128,7 +128,7 @@ function FriendsPage() {
     const code = inviteCodeInput.trim().toUpperCase();
     if (!code) return;
     if (code === myProfile?.invite_code) { toast.error("That's your own code"); return; }
-    const { data, error } = await supabase.from("profiles").select("id,username").eq("invite_code", code).maybeSingle();
+    const { data, error } = await supabase.rpc("find_user_by_invite_code", { _code: code }).maybeSingle();
     if (error) { toast.error(error.message); return; }
     if (!data) { toast.error("Invalid code"); return; }
     await sendRequest(data.id);

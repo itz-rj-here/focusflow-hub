@@ -284,6 +284,14 @@ export type Database = {
     }
     Functions: {
       are_friends: { Args: { a: string; b: string }; Returns: boolean }
+      find_user_by_invite_code: {
+        Args: { _code: string }
+        Returns: {
+          avatar_url: string
+          id: string
+          username: string
+        }[]
+      }
       generate_invite_code: { Args: never; Returns: string }
       get_friends_leaderboard: {
         Args: { range_kind: string }
@@ -303,6 +311,7 @@ export type Database = {
           username: string
         }[]
       }
+      get_my_invite_code: { Args: never; Returns: string }
       is_room_member: {
         Args: { _room_id: string; _user_id: string }
         Returns: boolean
