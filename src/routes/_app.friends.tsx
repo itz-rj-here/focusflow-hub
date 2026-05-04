@@ -128,7 +128,7 @@ function FriendsPage() {
     const code = inviteCodeInput.trim().toUpperCase();
     if (!code) return;
     if (code === myProfile?.invite_code) { toast.error("That's your own code"); return; }
-    const { data, error } = await supabase.from("profiles").select("id,username").eq("invite_code", code).maybeSingle();
+    const { data, error } = await supabase.rpc("find_user_by_invite_code", { _code: code }).maybeSingle();
     if (error) { toast.error(error.message); return; }
     if (!data) { toast.error("Invalid code"); return; }
     await sendRequest(data.id);
