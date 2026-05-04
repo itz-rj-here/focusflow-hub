@@ -56,7 +56,7 @@ function FriendsPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id,username,avatar_url,invite_code")
+        .select("id,username,avatar_url")
         .in("id", otherIds);
       if (error) throw error;
       return data as Profile[];
