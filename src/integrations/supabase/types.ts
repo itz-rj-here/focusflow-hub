@@ -303,6 +303,7 @@ export type Database = {
           username: string
         }[]
       }
+      get_my_invite_code: { Args: never; Returns: string }
       is_room_member: {
         Args: { _room_id: string; _user_id: string }
         Returns: boolean
