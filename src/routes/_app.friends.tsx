@@ -83,7 +83,7 @@ function FriendsPage() {
     if (q.length < 2) { setSearchResults([]); return; }
     const { data, error } = await supabase
       .from("profiles")
-      .select("id,username,avatar_url,invite_code")
+      .select("id,username,avatar_url")
       .ilike("username", `%${q}%`)
       .neq("id", me)
       .limit(10);
