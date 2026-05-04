@@ -29,9 +29,9 @@ function FriendsPage() {
   const { data: myProfile } = useQuery({
     queryKey: ["my-profile-invite", me],
     queryFn: async () => {
-      const { data, error } = await supabase.from("profiles").select("invite_code,username").eq("id", me).single();
+      const { data, error } = await supabase.rpc("get_my_invite_code");
       if (error) throw error;
-      return data;
+      return { invite_code: data as unknown as string };
     },
   });
 
