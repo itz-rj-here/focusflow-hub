@@ -119,9 +119,17 @@ function FriendsPage() {
     toast.success("Friend added");
     qc.invalidateQueries({ queryKey: ["friendships", me] });
   };
-  const declineRequest = async (id: string) => {
-    const { error } = await supabase.from("friendships").delete().eq("id", id);
+
+  const blockUser = async (otherId: string) => {
+    if (!confirm("Block this user? They will be removed from your friends.")) return;
+    // remove friendship
+    const f = friendships.find(
+      (x) => (x.requester_id === me && x.addressee_id === otherId) || (x.requester_id === otherId && x.addressee_id === me),
+    );
+    if (f) await supabase.from("friendships").delete().eq("id", f.id);
+    const { error } = await supabase.from("user_blocks").insert({ blocker_id: me, blocked_id: otherId });
     if (error) { toast.error(error.message); return; }
+    toast.success("User blocked");
     qc.invalidateQueries({ queryKey: ["friendships", me] });
   };
 
