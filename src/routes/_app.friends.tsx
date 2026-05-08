@@ -236,9 +236,13 @@ function FriendsPage() {
                   const p = profileMap[otherId];
                   if (!p) return null;
                   return (
-                    <li key={f.id} className="flex items-center gap-3 px-3 py-2">
+                    <li key={f.id} className="flex items-center gap-2 px-3 py-2">
                       <Avatar className="h-9 w-9"><AvatarImage src={p.avatar_url ?? undefined} /><AvatarFallback>{p.username.slice(0, 2).toUpperCase()}</AvatarFallback></Avatar>
                       <span className="flex-1 text-sm font-medium">{p.username}</span>
+                      <Link to="/dm/$friendId" params={{ friendId: otherId }}>
+                        <Button size="sm" variant="secondary"><MessageSquare className="h-4 w-4" /></Button>
+                      </Link>
+                      <Button size="sm" variant="ghost" onClick={() => blockUser(otherId)} title="Block"><Ban className="h-4 w-4" /></Button>
                       <Button size="sm" variant="ghost" onClick={() => declineRequest(f.id)}>Remove</Button>
                     </li>
                   );
