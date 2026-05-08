@@ -120,6 +120,12 @@ function FriendsPage() {
     qc.invalidateQueries({ queryKey: ["friendships", me] });
   };
 
+  const declineRequest = async (id: string) => {
+    const { error } = await supabase.from("friendships").delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    qc.invalidateQueries({ queryKey: ["friendships", me] });
+  };
+
   const blockUser = async (otherId: string) => {
     if (!confirm("Block this user? They will be removed from your friends.")) return;
     // remove friendship
