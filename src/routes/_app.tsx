@@ -12,7 +12,7 @@ import {
   Timer,
   LogOut,
   Users,
-  Users2,
+  UsersRound,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_app")({
