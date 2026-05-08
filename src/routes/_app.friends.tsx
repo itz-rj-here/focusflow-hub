@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Copy, UserPlus, Check, X, Users } from "lucide-react";
+import { Copy, UserPlus, Check, X, Users, MessageSquare, Ban } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/friends")({
@@ -118,9 +119,23 @@ function FriendsPage() {
     toast.success("Friend added");
     qc.invalidateQueries({ queryKey: ["friendships", me] });
   };
+
   const declineRequest = async (id: string) => {
     const { error } = await supabase.from("friendships").delete().eq("id", id);
     if (error) { toast.error(error.message); return; }
+    qc.invalidateQueries({ queryKey: ["friendships", me] });
+  };
+
+  const blockUser = async (otherId: string) => {
+    if (!confirm("Block this user? They will be removed from your friends.")) return;
+    // remove friendship
+    const f = friendships.find(
+      (x) => (x.requester_id === me && x.addressee_id === otherId) || (x.requester_id === otherId && x.addressee_id === me),
+    );
+    if (f) await supabase.from("friendships").delete().eq("id", f.id);
+    const { error } = await supabase.from("user_blocks").insert({ blocker_id: me, blocked_id: otherId });
+    if (error) { toast.error(error.message); return; }
+    toast.success("User blocked");
     qc.invalidateQueries({ queryKey: ["friendships", me] });
   };
 
@@ -221,9 +236,13 @@ function FriendsPage() {
                   const p = profileMap[otherId];
                   if (!p) return null;
                   return (
-                    <li key={f.id} className="flex items-center gap-3 px-3 py-2">
+                    <li key={f.id} className="flex items-center gap-2 px-3 py-2">
                       <Avatar className="h-9 w-9"><AvatarImage src={p.avatar_url ?? undefined} /><AvatarFallback>{p.username.slice(0, 2).toUpperCase()}</AvatarFallback></Avatar>
                       <span className="flex-1 text-sm font-medium">{p.username}</span>
+                      <Link to="/dm/$friendId" params={{ friendId: otherId }}>
+                        <Button size="sm" variant="secondary"><MessageSquare className="h-4 w-4" /></Button>
+                      </Link>
+                      <Button size="sm" variant="ghost" onClick={() => blockUser(otherId)} title="Block"><Ban className="h-4 w-4" /></Button>
                       <Button size="sm" variant="ghost" onClick={() => declineRequest(f.id)}>Remove</Button>
                     </li>
                   );

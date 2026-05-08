@@ -20,9 +20,13 @@ import { Route as AppTasksRouteImport } from './routes/_app.tasks'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppRoomsRouteImport } from './routes/_app.rooms'
 import { Route as AppHistoryRouteImport } from './routes/_app.history'
+import { Route as AppGroupsRouteImport } from './routes/_app.groups'
 import { Route as AppFriendsRouteImport } from './routes/_app.friends'
+import { Route as AppCommunityRouteImport } from './routes/_app.community'
 import { Route as AppAppRouteImport } from './routes/_app.app'
 import { Route as AppSubjectSubjectIdRouteImport } from './routes/_app.subject.$subjectId'
+import { Route as AppGroupGroupIdRouteImport } from './routes/_app.group.$groupId'
+import { Route as AppDmFriendIdRouteImport } from './routes/_app.dm.$friendId'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -78,9 +82,19 @@ const AppHistoryRoute = AppHistoryRouteImport.update({
   path: '/history',
   getParentRoute: () => AppRoute,
 } as any)
+const AppGroupsRoute = AppGroupsRouteImport.update({
+  id: '/groups',
+  path: '/groups',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppFriendsRoute = AppFriendsRouteImport.update({
   id: '/friends',
   path: '/friends',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCommunityRoute = AppCommunityRouteImport.update({
+  id: '/community',
+  path: '/community',
   getParentRoute: () => AppRoute,
 } as any)
 const AppAppRoute = AppAppRouteImport.update({
@@ -93,13 +107,25 @@ const AppSubjectSubjectIdRoute = AppSubjectSubjectIdRouteImport.update({
   path: '/subject/$subjectId',
   getParentRoute: () => AppRoute,
 } as any)
+const AppGroupGroupIdRoute = AppGroupGroupIdRouteImport.update({
+  id: '/group/$groupId',
+  path: '/group/$groupId',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDmFriendIdRoute = AppDmFriendIdRouteImport.update({
+  id: '/dm/$friendId',
+  path: '/dm/$friendId',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/app': typeof AppAppRoute
+  '/community': typeof AppCommunityRoute
   '/friends': typeof AppFriendsRoute
+  '/groups': typeof AppGroupsRoute
   '/history': typeof AppHistoryRoute
   '/rooms': typeof AppRoomsRoute
   '/settings': typeof AppSettingsRoute
@@ -107,6 +133,8 @@ export interface FileRoutesByFullPath {
   '/focus/$sessionId': typeof FocusSessionIdRoute
   '/review/$sessionId': typeof ReviewSessionIdRoute
   '/room/$roomId': typeof RoomRoomIdRoute
+  '/dm/$friendId': typeof AppDmFriendIdRoute
+  '/group/$groupId': typeof AppGroupGroupIdRoute
   '/subject/$subjectId': typeof AppSubjectSubjectIdRoute
 }
 export interface FileRoutesByTo {
@@ -114,7 +142,9 @@ export interface FileRoutesByTo {
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/app': typeof AppAppRoute
+  '/community': typeof AppCommunityRoute
   '/friends': typeof AppFriendsRoute
+  '/groups': typeof AppGroupsRoute
   '/history': typeof AppHistoryRoute
   '/rooms': typeof AppRoomsRoute
   '/settings': typeof AppSettingsRoute
@@ -122,6 +152,8 @@ export interface FileRoutesByTo {
   '/focus/$sessionId': typeof FocusSessionIdRoute
   '/review/$sessionId': typeof ReviewSessionIdRoute
   '/room/$roomId': typeof RoomRoomIdRoute
+  '/dm/$friendId': typeof AppDmFriendIdRoute
+  '/group/$groupId': typeof AppGroupGroupIdRoute
   '/subject/$subjectId': typeof AppSubjectSubjectIdRoute
 }
 export interface FileRoutesById {
@@ -131,7 +163,9 @@ export interface FileRoutesById {
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/_app/app': typeof AppAppRoute
+  '/_app/community': typeof AppCommunityRoute
   '/_app/friends': typeof AppFriendsRoute
+  '/_app/groups': typeof AppGroupsRoute
   '/_app/history': typeof AppHistoryRoute
   '/_app/rooms': typeof AppRoomsRoute
   '/_app/settings': typeof AppSettingsRoute
@@ -139,6 +173,8 @@ export interface FileRoutesById {
   '/focus/$sessionId': typeof FocusSessionIdRoute
   '/review/$sessionId': typeof ReviewSessionIdRoute
   '/room/$roomId': typeof RoomRoomIdRoute
+  '/_app/dm/$friendId': typeof AppDmFriendIdRoute
+  '/_app/group/$groupId': typeof AppGroupGroupIdRoute
   '/_app/subject/$subjectId': typeof AppSubjectSubjectIdRoute
 }
 export interface FileRouteTypes {
@@ -148,7 +184,9 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/login'
     | '/app'
+    | '/community'
     | '/friends'
+    | '/groups'
     | '/history'
     | '/rooms'
     | '/settings'
@@ -156,6 +194,8 @@ export interface FileRouteTypes {
     | '/focus/$sessionId'
     | '/review/$sessionId'
     | '/room/$roomId'
+    | '/dm/$friendId'
+    | '/group/$groupId'
     | '/subject/$subjectId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -163,7 +203,9 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/login'
     | '/app'
+    | '/community'
     | '/friends'
+    | '/groups'
     | '/history'
     | '/rooms'
     | '/settings'
@@ -171,6 +213,8 @@ export interface FileRouteTypes {
     | '/focus/$sessionId'
     | '/review/$sessionId'
     | '/room/$roomId'
+    | '/dm/$friendId'
+    | '/group/$groupId'
     | '/subject/$subjectId'
   id:
     | '__root__'
@@ -179,7 +223,9 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/login'
     | '/_app/app'
+    | '/_app/community'
     | '/_app/friends'
+    | '/_app/groups'
     | '/_app/history'
     | '/_app/rooms'
     | '/_app/settings'
@@ -187,6 +233,8 @@ export interface FileRouteTypes {
     | '/focus/$sessionId'
     | '/review/$sessionId'
     | '/room/$roomId'
+    | '/_app/dm/$friendId'
+    | '/_app/group/$groupId'
     | '/_app/subject/$subjectId'
   fileRoutesById: FileRoutesById
 }
@@ -279,11 +327,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppHistoryRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/groups': {
+      id: '/_app/groups'
+      path: '/groups'
+      fullPath: '/groups'
+      preLoaderRoute: typeof AppGroupsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/friends': {
       id: '/_app/friends'
       path: '/friends'
       fullPath: '/friends'
       preLoaderRoute: typeof AppFriendsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/community': {
+      id: '/_app/community'
+      path: '/community'
+      fullPath: '/community'
+      preLoaderRoute: typeof AppCommunityRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/app': {
@@ -300,26 +362,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSubjectSubjectIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/group/$groupId': {
+      id: '/_app/group/$groupId'
+      path: '/group/$groupId'
+      fullPath: '/group/$groupId'
+      preLoaderRoute: typeof AppGroupGroupIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/dm/$friendId': {
+      id: '/_app/dm/$friendId'
+      path: '/dm/$friendId'
+      fullPath: '/dm/$friendId'
+      preLoaderRoute: typeof AppDmFriendIdRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
   AppAppRoute: typeof AppAppRoute
+  AppCommunityRoute: typeof AppCommunityRoute
   AppFriendsRoute: typeof AppFriendsRoute
+  AppGroupsRoute: typeof AppGroupsRoute
   AppHistoryRoute: typeof AppHistoryRoute
   AppRoomsRoute: typeof AppRoomsRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppTasksRoute: typeof AppTasksRoute
+  AppDmFriendIdRoute: typeof AppDmFriendIdRoute
+  AppGroupGroupIdRoute: typeof AppGroupGroupIdRoute
   AppSubjectSubjectIdRoute: typeof AppSubjectSubjectIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppAppRoute: AppAppRoute,
+  AppCommunityRoute: AppCommunityRoute,
   AppFriendsRoute: AppFriendsRoute,
+  AppGroupsRoute: AppGroupsRoute,
   AppHistoryRoute: AppHistoryRoute,
   AppRoomsRoute: AppRoomsRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppTasksRoute: AppTasksRoute,
+  AppDmFriendIdRoute: AppDmFriendIdRoute,
+  AppGroupGroupIdRoute: AppGroupGroupIdRoute,
   AppSubjectSubjectIdRoute: AppSubjectSubjectIdRoute,
 }
 
@@ -337,12 +421,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
