@@ -50,8 +50,8 @@ function AppLayout() {
             <NavItem to="/tasks" icon={ListTodo} label="Tasks" />
             
             <NavItem to="/history" icon={History} label="History" />
-            <NavItem to="/friends" icon={Users} label="Friends" />
-            <NavItem to="/rooms" icon={Users2} label="Rooms" />
+            <NavItem to="/community" icon={Users} label="Community" />
+            <NavItem to="/groups" icon={UsersRound} label="Groups" />
             <NavItem to="/leaderboard" icon={Trophy} label="Leaderboard" />
             <NavItem to="/settings" icon={SettingsIcon} label="Settings" />
             <Button
