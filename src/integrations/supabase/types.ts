@@ -147,146 +147,39 @@ export type Database = {
         };
         Relationships: [];
       };
-      profiles: {
+profiles: {
         Row: {
-          avatar_url: string | null;
-          created_at: string;
-          id: string;
-          invite_code: string;
-          username: string;
-          visibility: string;
-        };
-        Insert: {
-          avatar_url?: string | null;
-          created_at?: string;
-          id: string;
-          invite_code?: string;
-          username: string;
-          visibility?: string;
-        };
-        Update: {
-          avatar_url?: string | null;
-          created_at?: string;
-          id?: string;
-          invite_code?: string;
-          username?: string;
-          visibility?: string;
-        };
-        Relationships: [];
-      };
-      room_invites: {
-        Row: {
-          created_at: string;
-          id: string;
-          invitee_id: string;
-          inviter_id: string;
-          room_id: string;
-          status: string;
-        };
-        Insert: {
-          created_at?: string;
-          id?: string;
-          invitee_id: string;
-          inviter_id: string;
-          room_id: string;
-          status?: string;
-        };
-        Update: {
-          created_at?: string;
-          id?: string;
-          invitee_id?: string;
-          inviter_id?: string;
-          room_id?: string;
-          status?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "room_invites_room_id_fkey";
-            columns: ["room_id"];
-            isOneToOne: false;
-            referencedRelation: "study_rooms";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      room_participants: {
-        Row: {
-          duration_seconds: number;
-          joined_at: string;
-          left_at: string | null;
-          room_id: string;
-          user_id: string;
-        };
-        Insert: {
-          duration_seconds?: number;
-          joined_at?: string;
-          left_at?: string | null;
-          room_id: string;
-          user_id: string;
-        };
-        Update: {
-          duration_seconds?: number;
-          joined_at?: string;
-          left_at?: string | null;
-          room_id?: string;
-          user_id?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "room_participants_room_id_fkey";
-            columns: ["room_id"];
-            isOneToOne: false;
-            referencedRelation: "study_rooms";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      study_rooms: {
-        Row: {
-          ended_at: string | null;
-          id: string;
-          name: string;
-          owner_id: string;
-          started_at: string;
-          status: string;
-          subject_id: string | null;
-        };
-        Insert: {
-          ended_at?: string | null;
-          id?: string;
-          name: string;
-          owner_id: string;
-          started_at?: string;
-          status?: string;
-          subject_id?: string | null;
-        };
-        Update: {
-          ended_at?: string | null;
-          id?: string;
-          name?: string;
-          owner_id?: string;
-          started_at?: string;
-          status?: string;
-          subject_id?: string | null;
-        };
-        Relationships: [];
-      };
-study_sessions: {
-        Row: {
-          duration_seconds: number
-          ended_at: string | null
+          avatar_url: string | null
+          break_reminder_enabled: boolean
+          break_reminder_interval_minutes: number
+          created_at: string
           id: string
-          is_paused: boolean
-          notes: string | null
-          paused_at: string | null
-          saved: boolean
-          started_at: string
-          subject_id: string
-          task_title: string
-          todo_id: string | null
-          total_paused_seconds: number
-          user_id: string
+          invite_code: string
+          username: string
+          visibility: string
         }
+        Insert: {
+          avatar_url?: string | null
+          break_reminder_enabled?: boolean
+          break_reminder_interval_minutes?: number
+          created_at?: string
+          id: string
+          invite_code?: string
+          username: string
+          visibility?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          break_reminder_enabled?: boolean
+          break_reminder_interval_minutes?: number
+          created_at?: string
+          id?: string
+          invite_code?: string
+          username?: string
+          visibility?: string
+        }
+        Relationships: []
+      }
         Insert: {
           duration_seconds?: number
           ended_at?: string | null
