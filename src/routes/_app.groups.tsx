@@ -107,11 +107,7 @@ function GroupsPage() {
 
       {creating && (
         <Card className="space-y-3 p-4">
-          <Input
-            placeholder="Group name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
+          <Input placeholder="Group name" value={name} onChange={(e) => setName(e.target.value)} />
           <Textarea
             placeholder="Description (optional)"
             value={description}

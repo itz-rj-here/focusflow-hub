@@ -135,15 +135,16 @@ function GroupDetail() {
 
   return (
     <div className="space-y-4">
-      <Link to="/groups" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground">
+      <Link
+        to="/groups"
+        className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
+      >
         <ArrowLeft className="mr-1 h-4 w-4" /> All groups
       </Link>
 
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">{group.name}</h1>
-        {group.description && (
-          <p className="text-sm text-muted-foreground">{group.description}</p>
-        )}
+        {group.description && <p className="text-sm text-muted-foreground">{group.description}</p>}
         <p className="mt-1 text-xs text-muted-foreground">{members.length} members</p>
       </div>
 
@@ -158,10 +159,7 @@ function GroupDetail() {
               const p = profileMap[m.user_id];
               const mine = m.user_id === me;
               return (
-                <div
-                  key={m.id}
-                  className={`flex gap-2 ${mine ? "flex-row-reverse" : ""}`}
-                >
+                <div key={m.id} className={`flex gap-2 ${mine ? "flex-row-reverse" : ""}`}>
                   <Avatar className="h-7 w-7">
                     <AvatarImage src={p?.avatar_url ?? undefined} />
                     <AvatarFallback>
@@ -170,9 +168,7 @@ function GroupDetail() {
                   </Avatar>
                   <div
                     className={`max-w-[75%] rounded-lg px-3 py-2 text-sm ${
-                      mine
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted"
+                      mine ? "bg-primary text-primary-foreground" : "bg-muted"
                     }`}
                   >
                     {!mine && (

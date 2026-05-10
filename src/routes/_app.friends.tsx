@@ -49,7 +49,7 @@ function FriendsPage() {
 
   // Fetch related profile info
   const otherIds = Array.from(
-    new Set(friendships.map((f) => (f.requester_id === me ? f.addressee_id : f.requester_id)))
+    new Set(friendships.map((f) => (f.requester_id === me ? f.addressee_id : f.requester_id))),
   );
   const { data: otherProfiles = [] } = useQuery({
     queryKey: ["friend-profiles", otherIds.sort().join(",")],
@@ -72,7 +72,9 @@ function FriendsPage() {
         qc.invalidateQueries({ queryKey: ["friendships", me] });
       })
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    return () => {
+      supabase.removeChannel(ch);
+    };
   }, [me, qc]);
 
   const accepted = friendships.filter((f) => f.status === "accepted");
@@ -81,24 +83,35 @@ function FriendsPage() {
 
   const runSearch = async () => {
     const q = search.trim();
-    if (q.length < 2) { setSearchResults([]); return; }
+    if (q.length < 2) {
+      setSearchResults([]);
+      return;
+    }
     const { data, error } = await supabase
       .from("profiles")
       .select("id,username,avatar_url")
       .ilike("username", `%${q}%`)
       .neq("id", me)
       .limit(10);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     setSearchResults(data as Profile[]);
   };
 
   const sendRequest = async (otherId: string) => {
     // Check existing
     const existing = friendships.find(
-      (f) => (f.requester_id === me && f.addressee_id === otherId) || (f.requester_id === otherId && f.addressee_id === me)
+      (f) =>
+        (f.requester_id === me && f.addressee_id === otherId) ||
+        (f.requester_id === otherId && f.addressee_id === me),
     );
     if (existing) {
-      if (existing.status === "accepted") { toast.info("Already friends"); return; }
+      if (existing.status === "accepted") {
+        toast.info("Already friends");
+        return;
+      }
       if (existing.requester_id === otherId) {
         // accept it
         await acceptRequest(existing.id);
@@ -107,22 +120,36 @@ function FriendsPage() {
       toast.info("Request already sent");
       return;
     }
-    const { error } = await supabase.from("friendships").insert({ requester_id: me, addressee_id: otherId });
-    if (error) { toast.error(error.message); return; }
+    const { error } = await supabase
+      .from("friendships")
+      .insert({ requester_id: me, addressee_id: otherId });
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Request sent");
     qc.invalidateQueries({ queryKey: ["friendships", me] });
   };
 
   const acceptRequest = async (id: string) => {
-    const { error } = await supabase.from("friendships").update({ status: "accepted", accepted_at: new Date().toISOString() }).eq("id", id);
-    if (error) { toast.error(error.message); return; }
+    const { error } = await supabase
+      .from("friendships")
+      .update({ status: "accepted", accepted_at: new Date().toISOString() })
+      .eq("id", id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Friend added");
     qc.invalidateQueries({ queryKey: ["friendships", me] });
   };
 
   const declineRequest = async (id: string) => {
     const { error } = await supabase.from("friendships").delete().eq("id", id);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     qc.invalidateQueries({ queryKey: ["friendships", me] });
   };
 
@@ -130,11 +157,18 @@ function FriendsPage() {
     if (!confirm("Block this user? They will be removed from your friends.")) return;
     // remove friendship
     const f = friendships.find(
-      (x) => (x.requester_id === me && x.addressee_id === otherId) || (x.requester_id === otherId && x.addressee_id === me),
+      (x) =>
+        (x.requester_id === me && x.addressee_id === otherId) ||
+        (x.requester_id === otherId && x.addressee_id === me),
     );
     if (f) await supabase.from("friendships").delete().eq("id", f.id);
-    const { error } = await supabase.from("user_blocks").insert({ blocker_id: me, blocked_id: otherId });
-    if (error) { toast.error(error.message); return; }
+    const { error } = await supabase
+      .from("user_blocks")
+      .insert({ blocker_id: me, blocked_id: otherId });
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("User blocked");
     qc.invalidateQueries({ queryKey: ["friendships", me] });
   };
@@ -142,10 +176,21 @@ function FriendsPage() {
   const redeemInviteCode = async () => {
     const code = inviteCodeInput.trim().toUpperCase();
     if (!code) return;
-    if (code === myProfile?.invite_code) { toast.error("That's your own code"); return; }
-    const { data, error } = await supabase.rpc("find_user_by_invite_code", { _code: code }).maybeSingle();
-    if (error) { toast.error(error.message); return; }
-    if (!data) { toast.error("Invalid code"); return; }
+    if (code === myProfile?.invite_code) {
+      toast.error("That's your own code");
+      return;
+    }
+    const { data, error } = await supabase
+      .rpc("find_user_by_invite_code", { _code: code })
+      .maybeSingle();
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    if (!data) {
+      toast.error("Invalid code");
+      return;
+    }
     await sendRequest(data.id);
     setInviteCodeInput("");
   };
@@ -160,7 +205,9 @@ function FriendsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Friends</h1>
-        <p className="text-sm text-muted-foreground">Connect to study together and compete on the friends leaderboard.</p>
+        <p className="text-sm text-muted-foreground">
+          Connect to study together and compete on the friends leaderboard.
+        </p>
       </div>
 
       <Card className="space-y-4 p-6">
@@ -170,9 +217,13 @@ function FriendsPage() {
             <code className="flex-1 rounded-md border border-border bg-muted/40 px-3 py-2 font-mono text-sm">
               {myProfile?.invite_code ?? "…"}
             </code>
-            <Button size="sm" variant="secondary" onClick={copyCode}><Copy className="h-4 w-4" /></Button>
+            <Button size="sm" variant="secondary" onClick={copyCode}>
+              <Copy className="h-4 w-4" />
+            </Button>
           </div>
-          <p className="text-xs text-muted-foreground">Share this code with a friend so they can add you.</p>
+          <p className="text-xs text-muted-foreground">
+            Share this code with a friend so they can add you.
+          </p>
         </div>
         <div className="space-y-2">
           <p className="text-sm font-medium">Redeem a code</p>
@@ -195,10 +246,14 @@ function FriendsPage() {
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") runSearch(); }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") runSearch();
+            }}
             placeholder="Search username…"
           />
-          <Button onClick={runSearch} variant="secondary">Search</Button>
+          <Button onClick={runSearch} variant="secondary">
+            Search
+          </Button>
         </div>
         {searchResults.length > 0 && (
           <ul className="divide-y divide-border rounded-md border border-border">
@@ -228,7 +283,10 @@ function FriendsPage() {
         <TabsContent value="friends">
           <Card className="p-2">
             {accepted.length === 0 ? (
-              <p className="p-6 text-center text-sm text-muted-foreground"><Users className="mx-auto mb-2 h-5 w-5" />No friends yet.</p>
+              <p className="p-6 text-center text-sm text-muted-foreground">
+                <Users className="mx-auto mb-2 h-5 w-5" />
+                No friends yet.
+              </p>
             ) : (
               <ul className="divide-y divide-border">
                 {accepted.map((f) => {
@@ -237,13 +295,27 @@ function FriendsPage() {
                   if (!p) return null;
                   return (
                     <li key={f.id} className="flex items-center gap-2 px-3 py-2">
-                      <Avatar className="h-9 w-9"><AvatarImage src={p.avatar_url ?? undefined} /><AvatarFallback>{p.username.slice(0, 2).toUpperCase()}</AvatarFallback></Avatar>
+                      <Avatar className="h-9 w-9">
+                        <AvatarImage src={p.avatar_url ?? undefined} />
+                        <AvatarFallback>{p.username.slice(0, 2).toUpperCase()}</AvatarFallback>
+                      </Avatar>
                       <span className="flex-1 text-sm font-medium">{p.username}</span>
                       <Link to="/dm/$friendId" params={{ friendId: otherId }}>
-                        <Button size="sm" variant="secondary"><MessageSquare className="h-4 w-4" /></Button>
+                        <Button size="sm" variant="secondary">
+                          <MessageSquare className="h-4 w-4" />
+                        </Button>
                       </Link>
-                      <Button size="sm" variant="ghost" onClick={() => blockUser(otherId)} title="Block"><Ban className="h-4 w-4" /></Button>
-                      <Button size="sm" variant="ghost" onClick={() => declineRequest(f.id)}>Remove</Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => blockUser(otherId)}
+                        title="Block"
+                      >
+                        <Ban className="h-4 w-4" />
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => declineRequest(f.id)}>
+                        Remove
+                      </Button>
                     </li>
                   );
                 })}
@@ -263,10 +335,17 @@ function FriendsPage() {
                   if (!p) return null;
                   return (
                     <li key={f.id} className="flex items-center gap-3 px-3 py-2">
-                      <Avatar className="h-9 w-9"><AvatarImage src={p.avatar_url ?? undefined} /><AvatarFallback>{p.username.slice(0, 2).toUpperCase()}</AvatarFallback></Avatar>
+                      <Avatar className="h-9 w-9">
+                        <AvatarImage src={p.avatar_url ?? undefined} />
+                        <AvatarFallback>{p.username.slice(0, 2).toUpperCase()}</AvatarFallback>
+                      </Avatar>
                       <span className="flex-1 text-sm font-medium">{p.username}</span>
-                      <Button size="sm" onClick={() => acceptRequest(f.id)}><Check className="h-4 w-4" /></Button>
-                      <Button size="sm" variant="ghost" onClick={() => declineRequest(f.id)}><X className="h-4 w-4" /></Button>
+                      <Button size="sm" onClick={() => acceptRequest(f.id)}>
+                        <Check className="h-4 w-4" />
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => declineRequest(f.id)}>
+                        <X className="h-4 w-4" />
+                      </Button>
                     </li>
                   );
                 })}
@@ -286,10 +365,15 @@ function FriendsPage() {
                   if (!p) return null;
                   return (
                     <li key={f.id} className="flex items-center gap-3 px-3 py-2">
-                      <Avatar className="h-9 w-9"><AvatarImage src={p.avatar_url ?? undefined} /><AvatarFallback>{p.username.slice(0, 2).toUpperCase()}</AvatarFallback></Avatar>
+                      <Avatar className="h-9 w-9">
+                        <AvatarImage src={p.avatar_url ?? undefined} />
+                        <AvatarFallback>{p.username.slice(0, 2).toUpperCase()}</AvatarFallback>
+                      </Avatar>
                       <span className="flex-1 text-sm font-medium">{p.username}</span>
                       <span className="text-xs text-muted-foreground">Pending</span>
-                      <Button size="sm" variant="ghost" onClick={() => declineRequest(f.id)}><X className="h-4 w-4" /></Button>
+                      <Button size="sm" variant="ghost" onClick={() => declineRequest(f.id)}>
+                        <X className="h-4 w-4" />
+                      </Button>
                     </li>
                   );
                 })}

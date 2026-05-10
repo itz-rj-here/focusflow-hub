@@ -66,7 +66,10 @@ function RoomPage() {
     queryKey: ["room-profiles", partIds.sort().join(",")],
     enabled: partIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase.from("profiles").select("id,username,avatar_url").in("id", partIds);
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id,username,avatar_url")
+        .in("id", partIds);
       if (error) throw error;
       return data;
     },
@@ -78,57 +81,98 @@ function RoomPage() {
     if (!me || !room) return;
     const inList = participants.some((p) => p.user_id === me);
     if (!inList) {
-      supabase.from("room_participants").upsert({ room_id: roomId, user_id: me }).then(() => {
-        qc.invalidateQueries({ queryKey: ["room-participants", roomId] });
-      });
+      supabase
+        .from("room_participants")
+        .upsert({ room_id: roomId, user_id: me })
+        .then(() => {
+          qc.invalidateQueries({ queryKey: ["room-participants", roomId] });
+        });
     }
   }, [me, room, participants, roomId, qc]);
 
   // Realtime
   useEffect(() => {
-    const ch = supabase.channel(`room-${roomId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "room_participants", filter: `room_id=eq.${roomId}` }, () => {
-        qc.invalidateQueries({ queryKey: ["room-participants", roomId] });
-      })
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "study_rooms", filter: `id=eq.${roomId}` }, () => {
-        qc.invalidateQueries({ queryKey: ["room", roomId] });
-      })
+    const ch = supabase
+      .channel(`room-${roomId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "room_participants",
+          filter: `room_id=eq.${roomId}`,
+        },
+        () => {
+          qc.invalidateQueries({ queryKey: ["room-participants", roomId] });
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "study_rooms", filter: `id=eq.${roomId}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ["room", roomId] });
+        },
+      )
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    return () => {
+      supabase.removeChannel(ch);
+    };
   }, [roomId, qc]);
 
   // Tick
   useEffect(() => {
     tickRef.current = setInterval(() => setNow(Date.now()), 1000);
-    return () => { if (tickRef.current) clearInterval(tickRef.current); };
+    return () => {
+      if (tickRef.current) clearInterval(tickRef.current);
+    };
   }, []);
 
   const myParticipation = participants.find((p) => p.user_id === me);
-  const myStart = myParticipation && !myParticipation.left_at ? new Date(myParticipation.joined_at).getTime() : null;
-  const myElapsed = myStart ? Math.floor((now - myStart) / 1000) : (myParticipation?.duration_seconds ?? 0);
+  const myStart =
+    myParticipation && !myParticipation.left_at
+      ? new Date(myParticipation.joined_at).getTime()
+      : null;
+  const myElapsed = myStart
+    ? Math.floor((now - myStart) / 1000)
+    : (myParticipation?.duration_seconds ?? 0);
 
   const leaveRoom = async () => {
     if (!myParticipation || !me) return;
     const start = new Date(myParticipation.joined_at).getTime();
-    const dur = Math.max(0, Math.floor((Date.now() - start) / 1000)) + (myParticipation.duration_seconds ?? 0);
-    await supabase.from("room_participants")
+    const dur =
+      Math.max(0, Math.floor((Date.now() - start) / 1000)) +
+      (myParticipation.duration_seconds ?? 0);
+    await supabase
+      .from("room_participants")
       .update({ left_at: new Date().toISOString(), duration_seconds: dur })
-      .eq("room_id", roomId).eq("user_id", me);
+      .eq("room_id", roomId)
+      .eq("user_id", me);
     navigate({ to: "/rooms" });
   };
 
   const endRoom = async () => {
     if (!room || room.owner_id !== me) return;
-    await supabase.from("study_rooms").update({ status: "ended", ended_at: new Date().toISOString() }).eq("id", roomId);
+    await supabase
+      .from("study_rooms")
+      .update({ status: "ended", ended_at: new Date().toISOString() })
+      .eq("id", roomId);
     toast.success("Room ended");
     navigate({ to: "/rooms" });
   };
 
   if (isError) {
-    return <div className="grid min-h-screen place-items-center text-sm text-muted-foreground">Room not found or no access.</div>;
+    return (
+      <div className="grid min-h-screen place-items-center text-sm text-muted-foreground">
+        Room not found or no access.
+      </div>
+    );
   }
   if (!room) {
-    return <div className="grid min-h-screen place-items-center text-sm text-muted-foreground">Loading…</div>;
+    return (
+      <div className="grid min-h-screen place-items-center text-sm text-muted-foreground">
+        Loading…
+      </div>
+    );
   }
 
   const active = participants.filter((p) => !p.left_at);
@@ -136,13 +180,22 @@ function RoomPage() {
   return (
     <main className="bg-radial-glow min-h-screen">
       <header className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
-        <Link to="/rooms" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+        <Link
+          to="/rooms"
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+        >
           <ArrowLeft className="h-4 w-4" /> Back
         </Link>
         <div className="flex gap-2">
-          <Button variant="secondary" size="sm" onClick={leaveRoom}><LogOut className="mr-1 h-4 w-4" />Leave</Button>
+          <Button variant="secondary" size="sm" onClick={leaveRoom}>
+            <LogOut className="mr-1 h-4 w-4" />
+            Leave
+          </Button>
           {room.owner_id === me && room.status === "active" && (
-            <Button variant="destructive" size="sm" onClick={endRoom}><Square className="mr-1 h-4 w-4" />End room</Button>
+            <Button variant="destructive" size="sm" onClick={endRoom}>
+              <Square className="mr-1 h-4 w-4" />
+              End room
+            </Button>
           )}
         </div>
       </header>
@@ -150,11 +203,14 @@ function RoomPage() {
       <div className="mx-auto max-w-4xl px-6 pb-16">
         <div className="text-center">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-3 py-1 text-xs text-muted-foreground">
-            <Users className="h-3 w-3" />{active.length} focusing now
+            <Users className="h-3 w-3" />
+            {active.length} focusing now
           </span>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight">{room.name}</h1>
           <p className="mt-1 text-xs text-muted-foreground">
-            {room.status === "ended" ? "Ended" : `Started ${new Date(room.started_at).toLocaleTimeString()}`}
+            {room.status === "ended"
+              ? "Ended"
+              : `Started ${new Date(room.started_at).toLocaleTimeString()}`}
           </p>
           <div className="mt-8 font-mono text-6xl font-light tabular-nums sm:text-8xl timer-tick">
             {fmt(myElapsed)}
@@ -171,11 +227,26 @@ function RoomPage() {
               const start = new Date(p.joined_at).getTime();
               const live = isActive ? Math.floor((now - start) / 1000) : (p.duration_seconds ?? 0);
               return (
-                <Card key={p.user_id} className={`flex items-center gap-3 p-3 ${isActive ? "" : "opacity-60"}`}>
-                  <Avatar className="h-10 w-10"><AvatarImage src={prof?.avatar_url ?? undefined} /><AvatarFallback>{prof?.username.slice(0, 2).toUpperCase() ?? "?"}</AvatarFallback></Avatar>
+                <Card
+                  key={p.user_id}
+                  className={`flex items-center gap-3 p-3 ${isActive ? "" : "opacity-60"}`}
+                >
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={prof?.avatar_url ?? undefined} />
+                    <AvatarFallback>
+                      {prof?.username.slice(0, 2).toUpperCase() ?? "?"}
+                    </AvatarFallback>
+                  </Avatar>
                   <div className="flex-1">
-                    <p className="text-sm font-medium">{prof?.username ?? "…"}{p.user_id === me && <span className="ml-1 text-xs text-muted-foreground">(you)</span>}</p>
-                    <p className="text-xs text-muted-foreground">{isActive ? "Focusing" : "Left"}</p>
+                    <p className="text-sm font-medium">
+                      {prof?.username ?? "…"}
+                      {p.user_id === me && (
+                        <span className="ml-1 text-xs text-muted-foreground">(you)</span>
+                      )}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {isActive ? "Focusing" : "Left"}
+                    </p>
                   </div>
                   <span className="font-mono text-sm tabular-nums">{fmt(live)}</span>
                 </Card>

@@ -7,7 +7,12 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -57,11 +62,17 @@ function RoomsPage() {
   const { data: friends = [] } = useQuery({
     queryKey: ["accepted-friends", me],
     queryFn: async () => {
-      const { data: f, error } = await supabase.from("friendships").select("requester_id,addressee_id").eq("status", "accepted");
+      const { data: f, error } = await supabase
+        .from("friendships")
+        .select("requester_id,addressee_id")
+        .eq("status", "accepted");
       if (error) throw error;
       const ids = (f ?? []).map((r) => (r.requester_id === me ? r.addressee_id : r.requester_id));
       if (ids.length === 0) return [];
-      const { data: p, error: e2 } = await supabase.from("profiles").select("id,username,avatar_url").in("id", ids);
+      const { data: p, error: e2 } = await supabase
+        .from("profiles")
+        .select("id,username,avatar_url")
+        .in("id", ids);
       if (e2) throw e2;
       return p;
     },
@@ -73,7 +84,10 @@ function RoomsPage() {
     queryKey: ["inviter-profiles", inviterIds.sort().join(",")],
     enabled: inviterIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase.from("profiles").select("id,username,avatar_url").in("id", inviterIds);
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id,username,avatar_url")
+        .in("id", inviterIds);
       if (error) throw error;
       return data;
     },
@@ -81,7 +95,8 @@ function RoomsPage() {
   const inviterMap = Object.fromEntries(inviterProfiles.map((p) => [p.id, p]));
 
   useEffect(() => {
-    const ch = supabase.channel("rooms-watch")
+    const ch = supabase
+      .channel("rooms-watch")
       .on("postgres_changes", { event: "*", schema: "public", table: "room_invites" }, () => {
         qc.invalidateQueries({ queryKey: ["my-invites", me] });
       })
@@ -89,35 +104,53 @@ function RoomsPage() {
         qc.invalidateQueries({ queryKey: ["rooms", me] });
       })
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    return () => {
+      supabase.removeChannel(ch);
+    };
   }, [me, qc]);
 
   const createRoom = async () => {
     const trimmed = name.trim();
-    if (!trimmed) { toast.error("Name required"); return; }
+    if (!trimmed) {
+      toast.error("Name required");
+      return;
+    }
     const { data: room, error } = await supabase
       .from("study_rooms")
       .insert({ owner_id: me, name: trimmed })
       .select("id")
       .single();
-    if (error || !room) { toast.error(error?.message ?? "Failed"); return; }
+    if (error || !room) {
+      toast.error(error?.message ?? "Failed");
+      return;
+    }
 
     if (selectedFriends.size > 0) {
       const rows = Array.from(selectedFriends).map((fid) => ({
-        room_id: room.id, invitee_id: fid, inviter_id: me,
+        room_id: room.id,
+        invitee_id: fid,
+        inviter_id: me,
       }));
       const { error: e2 } = await supabase.from("room_invites").insert(rows);
       if (e2) toast.error(e2.message);
     }
     // Auto-join self
     await supabase.from("room_participants").insert({ room_id: room.id, user_id: me });
-    setOpen(false); setName(""); setSelectedFriends(new Set());
+    setOpen(false);
+    setName("");
+    setSelectedFriends(new Set());
     navigate({ to: "/room/$roomId", params: { roomId: room.id } });
   };
 
   const acceptInvite = async (inviteId: string, roomId: string) => {
-    const { error } = await supabase.from("room_invites").update({ status: "accepted" }).eq("id", inviteId);
-    if (error) { toast.error(error.message); return; }
+    const { error } = await supabase
+      .from("room_invites")
+      .update({ status: "accepted" })
+      .eq("id", inviteId);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     await supabase.from("room_participants").upsert({ room_id: roomId, user_id: me });
     navigate({ to: "/room/$roomId", params: { roomId } });
   };
@@ -129,7 +162,8 @@ function RoomsPage() {
   const toggleFriend = (id: string) => {
     setSelectedFriends((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   };
@@ -143,22 +177,46 @@ function RoomsPage() {
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button><Plus className="mr-1 h-4 w-4" />Create room</Button>
+            <Button>
+              <Plus className="mr-1 h-4 w-4" />
+              Create room
+            </Button>
           </DialogTrigger>
           <DialogContent>
-            <DialogHeader><DialogTitle>New focus room</DialogTitle></DialogHeader>
+            <DialogHeader>
+              <DialogTitle>New focus room</DialogTitle>
+            </DialogHeader>
             <div className="space-y-4">
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Room name (e.g. Calc cram)" />
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Room name (e.g. Calc cram)"
+              />
               <div>
                 <p className="mb-2 text-sm font-medium">Invite friends</p>
                 {friends.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">No friends yet. <Link to="/friends" className="underline">Add some</Link>.</p>
+                  <p className="text-xs text-muted-foreground">
+                    No friends yet.{" "}
+                    <Link to="/friends" className="underline">
+                      Add some
+                    </Link>
+                    .
+                  </p>
                 ) : (
                   <ul className="max-h-64 space-y-1 overflow-y-auto rounded-md border border-border p-2">
                     {friends.map((f) => (
-                      <li key={f.id} className="flex items-center gap-2 rounded px-2 py-1.5 hover:bg-accent">
-                        <Checkbox checked={selectedFriends.has(f.id)} onCheckedChange={() => toggleFriend(f.id)} />
-                        <Avatar className="h-7 w-7"><AvatarImage src={f.avatar_url ?? undefined} /><AvatarFallback>{f.username.slice(0, 2).toUpperCase()}</AvatarFallback></Avatar>
+                      <li
+                        key={f.id}
+                        className="flex items-center gap-2 rounded px-2 py-1.5 hover:bg-accent"
+                      >
+                        <Checkbox
+                          checked={selectedFriends.has(f.id)}
+                          onCheckedChange={() => toggleFriend(f.id)}
+                        />
+                        <Avatar className="h-7 w-7">
+                          <AvatarImage src={f.avatar_url ?? undefined} />
+                          <AvatarFallback>{f.username.slice(0, 2).toUpperCase()}</AvatarFallback>
+                        </Avatar>
                         <span className="text-sm">{f.username}</span>
                       </li>
                     ))}
@@ -166,7 +224,9 @@ function RoomsPage() {
                 )}
               </div>
             </div>
-            <DialogFooter><Button onClick={createRoom}>Create & join</Button></DialogFooter>
+            <DialogFooter>
+              <Button onClick={createRoom}>Create & join</Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
@@ -180,14 +240,26 @@ function RoomsPage() {
               const inviter = inviterMap[i.inviter_id];
               if (!room || room.status !== "active") return null;
               return (
-                <li key={i.id} className="flex items-center gap-3 rounded-md border border-border p-3">
-                  <Avatar className="h-8 w-8"><AvatarImage src={inviter?.avatar_url ?? undefined} /><AvatarFallback>{inviter?.username.slice(0, 2).toUpperCase() ?? "?"}</AvatarFallback></Avatar>
+                <li
+                  key={i.id}
+                  className="flex items-center gap-3 rounded-md border border-border p-3"
+                >
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={inviter?.avatar_url ?? undefined} />
+                    <AvatarFallback>
+                      {inviter?.username.slice(0, 2).toUpperCase() ?? "?"}
+                    </AvatarFallback>
+                  </Avatar>
                   <div className="flex-1">
                     <p className="text-sm font-medium">{room.name}</p>
                     <p className="text-xs text-muted-foreground">from {inviter?.username ?? "…"}</p>
                   </div>
-                  <Button size="sm" onClick={() => acceptInvite(i.id, i.room_id)}><Check className="h-4 w-4" /></Button>
-                  <Button size="sm" variant="ghost" onClick={() => declineInvite(i.id)}><X className="h-4 w-4" /></Button>
+                  <Button size="sm" onClick={() => acceptInvite(i.id, i.room_id)}>
+                    <Check className="h-4 w-4" />
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => declineInvite(i.id)}>
+                    <X className="h-4 w-4" />
+                  </Button>
                 </li>
               );
             })}

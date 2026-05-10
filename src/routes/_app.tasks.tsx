@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Play, Plus, Trash2, Pencil, Check, X } from "lucide-react";
+import { Play, Plus, Trash2, Pencil, Check, X, Flag, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -26,6 +26,29 @@ export const Route = createFileRoute("/_app/tasks")({
 type Todo = Tables<"todos">;
 type Subject = Tables<"subjects">;
 
+const PRIORITY_LABELS = {
+  1: { label: "Low", color: "text-green-500" },
+  2: { label: "Medium", color: "text-yellow-500" },
+  3: { label: "High", color: "text-red-500" },
+};
+
+function isOverdue(dueDate: string | null): boolean {
+  if (!dueDate) return false;
+  return new Date(dueDate) < new Date(new Date().toDateString());
+}
+
+function formatDueDate(dueDate: string | null): string {
+  if (!dueDate) return "";
+  const date = new Date(dueDate);
+  const today = new Date(new Date().toDateString());
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  if (date.toDateString() === today.toDateString()) return "Today";
+  if (date.toDateString() === tomorrow.toDateString()) return "Tomorrow";
+  return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
 function TasksPage() {
   const { user } = useAuth();
   const userId = user!.id;
@@ -34,8 +57,11 @@ function TasksPage() {
 
   const [newTitle, setNewTitle] = useState("");
   const [newSubjectId, setNewSubjectId] = useState<string>("");
+  const [newPriority, setNewPriority] = useState<number>(2);
+  const [newDueDate, setNewDueDate] = useState<string>("");
   const [filterSubject, setFilterSubject] = useState<string>("all");
   const [showCompleted, setShowCompleted] = useState(false);
+  const [sortBy, setSortBy] = useState<"priority" | "due_date" | "created_at">("created_at");
 
   const { data: subjects = [] } = useQuery({
     queryKey: ["subjects", userId],
@@ -73,12 +99,26 @@ function TasksPage() {
   }, [subjects]);
 
   const filtered = useMemo(() => {
-    return todos.filter((t) => {
+    let result = todos.filter((t) => {
       if (filterSubject !== "all" && t.subject_id !== filterSubject) return false;
       if (!showCompleted && t.completed) return false;
       return true;
     });
-  }, [todos, filterSubject, showCompleted]);
+
+    // Sort by priority (high first) or due date (soonest first)
+    if (sortBy === "priority") {
+      result = [...result].sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));
+    } else if (sortBy === "due_date") {
+      result = [...result].sort((a, b) => {
+        if (!a.due_date && !b.due_date) return 0;
+        if (!a.due_date) return 1;
+        if (!b.due_date) return -1;
+        return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+      });
+    }
+
+    return result;
+  }, [todos, filterSubject, showCompleted, sortBy]);
 
   const addTodo = useMutation({
     mutationFn: async () => {
@@ -87,11 +127,15 @@ function TasksPage() {
         user_id: userId,
         title: newTitle.trim(),
         subject_id: newSubjectId,
+        priority: newPriority,
+        due_date: newDueDate || null,
       });
       if (error) throw error;
     },
     onSuccess: () => {
       setNewTitle("");
+      setNewPriority(2);
+      setNewDueDate("");
       qc.invalidateQueries({ queryKey: ["todos"] });
       qc.invalidateQueries({ queryKey: ["subject-stats", userId] });
     },
@@ -145,6 +189,22 @@ function TasksPage() {
     },
   });
 
+  const updatePriority = useMutation({
+    mutationFn: async ({ id, priority }: { id: string; priority: number }) => {
+      const { error } = await supabase.from("todos").update({ priority }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["todos"] }),
+  });
+
+  const updateDueDate = useMutation({
+    mutationFn: async ({ id, due_date }: { id: string; due_date: string | null }) => {
+      const { error } = await supabase.from("todos").update({ due_date }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["todos"] }),
+  });
+
   const startSession = useMutation({
     mutationFn: async (todo: Todo) => {
       const { data, error } = await supabase
@@ -178,40 +238,75 @@ function TasksPage() {
             e.preventDefault();
             if (newTitle.trim()) addTodo.mutate();
           }}
-          className="flex flex-col gap-2 sm:flex-row sm:items-center"
+          className="flex flex-col gap-2"
         >
-          <Input
-            value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
-            placeholder="Add a task…"
-            className="h-11 flex-1"
-          />
-          <Select value={newSubjectId} onValueChange={setNewSubjectId}>
-            <SelectTrigger className="h-11 sm:w-44">
-              <SelectValue placeholder="Subject" />
-            </SelectTrigger>
-            <SelectContent>
-              {subjects.map((s) => (
-                <SelectItem key={s.id} value={s.id}>
-                  <span className="inline-flex items-center gap-2">
-                    <span
-                      className="h-2.5 w-2.5 rounded-full"
-                      style={{ backgroundColor: s.color_code }}
-                    />
-                    {s.name}
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <Input
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              placeholder="Add a task…"
+              className="h-11 flex-1"
+            />
+            <Select value={newSubjectId} onValueChange={setNewSubjectId}>
+              <SelectTrigger className="h-11 sm:w-44">
+                <SelectValue placeholder="Subject" />
+              </SelectTrigger>
+              <SelectContent>
+                {subjects.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>
+                    <span className="inline-flex items-center gap-2">
+                      <span
+                        className="h-2.5 w-2.5 rounded-full"
+                        style={{ backgroundColor: s.color_code }}
+                      />
+                      {s.name}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Select value={String(newPriority)} onValueChange={(v) => setNewPriority(Number(v))}>
+              <SelectTrigger className="h-9 w-32">
+                <SelectValue placeholder="Priority" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Flag className="h-3.5 w-3.5 text-green-500" />
+                    Low
                   </span>
                 </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button
-            type="submit"
-            size="lg"
-            disabled={!newTitle.trim() || !newSubjectId || addTodo.isPending}
-          >
-            <Plus className="h-4 w-4" />
-            <span className="ml-1 hidden sm:inline">Add</span>
-          </Button>
+                <SelectItem value="2">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Flag className="h-3.5 w-3.5 text-yellow-500" />
+                    Medium
+                  </span>
+                </SelectItem>
+                <SelectItem value="3">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Flag className="h-3.5 w-3.5 text-red-500" />
+                    High
+                  </span>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            <Input
+              type="date"
+              value={newDueDate}
+              onChange={(e) => setNewDueDate(e.target.value)}
+              className="h-9 w-40"
+            />
+            <Button
+              type="submit"
+              size="lg"
+              disabled={!newTitle.trim() || !newSubjectId || addTodo.isPending}
+            >
+              <Plus className="h-4 w-4" />
+              <span className="ml-1 hidden sm:inline">Add</span>
+            </Button>
+          </div>
         </form>
       </Card>
 
@@ -233,6 +328,16 @@ function TasksPage() {
                 </span>
               </SelectItem>
             ))}
+          </SelectContent>
+        </Select>
+        <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+          <SelectTrigger className="h-9 w-36">
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="created_at">Newest first</SelectItem>
+            <SelectItem value="priority">Priority</SelectItem>
+            <SelectItem value="due_date">Due date</SelectItem>
           </SelectContent>
         </Select>
         <label className="inline-flex items-center gap-2 text-sm text-muted-foreground">
@@ -259,6 +364,8 @@ function TasksPage() {
               onDelete={() => remove.mutate(t.id)}
               onRename={(title) => rename.mutate({ id: t.id, title })}
               onReassign={(sid) => reassign.mutate({ id: t.id, subject_id: sid })}
+              onUpdatePriority={(p) => updatePriority.mutate({ id: t.id, priority: p })}
+              onUpdateDueDate={(d) => updateDueDate.mutate({ id: t.id, due_date: d })}
               onStart={() => startSession.mutate(t)}
               starting={startSession.isPending}
             />
@@ -277,6 +384,8 @@ function TodoRow({
   onDelete,
   onRename,
   onReassign,
+  onUpdatePriority,
+  onUpdateDueDate,
   onStart,
   starting,
 }: {
@@ -287,12 +396,19 @@ function TodoRow({
   onDelete: () => void;
   onRename: (title: string) => void;
   onReassign: (subjectId: string) => void;
+  onUpdatePriority: (priority: number) => void;
+  onUpdateDueDate: (due_date: string | null) => void;
   onStart: () => void;
   starting: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(todo.title);
+  const [showDueDatePicker, setShowDueDatePicker] = useState(false);
   useEffect(() => setDraft(todo.title), [todo.title]);
+
+  const priorityConfig =
+    PRIORITY_LABELS[todo.priority as keyof typeof PRIORITY_LABELS] || PRIORITY_LABELS[2];
+  const overdue = isOverdue(todo.due_date);
 
   return (
     <li>
@@ -330,9 +446,82 @@ function TodoRow({
             </Button>
           </div>
         ) : (
-          <span className={`flex-1 text-sm ${todo.completed ? "line-through" : ""}`}>
-            {todo.title}
-          </span>
+          <div className="flex flex-1 items-center gap-2">
+            <span className={`text-sm ${todo.completed ? "line-through" : ""}`}>{todo.title}</span>
+            {/* Priority badge */}
+            <Select
+              value={String(todo.priority ?? 2)}
+              onValueChange={(v) => onUpdatePriority(Number(v))}
+            >
+              <SelectTrigger className="h-6 w-6 p-0 border-0 bg-transparent hover:bg-transparent focus:ring-0">
+                <Flag className={`h-3.5 w-3.5 ${priorityConfig.color}`} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Flag className="h-3.5 w-3.5 text-green-500" /> Low
+                  </span>
+                </SelectItem>
+                <SelectItem value="2">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Flag className="h-3.5 w-3.5 text-yellow-500" /> Medium
+                  </span>
+                </SelectItem>
+                <SelectItem value="3">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Flag className="h-3.5 w-3.5 text-red-500" /> High
+                  </span>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            {/* Due date badge */}
+            {todo.due_date ? (
+              <button
+                onClick={() => setShowDueDatePicker(true)}
+                className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs ${
+                  overdue && !todo.completed
+                    ? "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
+                    : "bg-muted text-muted-foreground"
+                }`}
+              >
+                <Calendar className="h-3 w-3" />
+                {formatDueDate(todo.due_date)}
+              </button>
+            ) : (
+              <button
+                onClick={() => setShowDueDatePicker(true)}
+                className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs text-muted-foreground hover:bg-muted"
+              >
+                <Calendar className="h-3 w-3" />
+                Set due date
+              </button>
+            )}
+            {showDueDatePicker && (
+              <div className="flex items-center gap-1">
+                <Input
+                  type="date"
+                  value={todo.due_date ?? ""}
+                  onChange={(e) => {
+                    onUpdateDueDate(e.target.value || null);
+                    setShowDueDatePicker(false);
+                  }}
+                  className="h-6 w-32 text-xs"
+                  autoFocus
+                />
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-6 w-6"
+                  onClick={() => {
+                    onUpdateDueDate(null);
+                    setShowDueDatePicker(false);
+                  }}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
+          </div>
         )}
 
         {!editing && (
