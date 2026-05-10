@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Table,
@@ -14,6 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from "recharts";
+import { Download } from "lucide-react";
 
 export const Route = createFileRoute("/_app/history")({
   head: () => ({ meta: [{ title: "History — FocusFlow" }] }),
@@ -27,6 +29,30 @@ function fmt(secs: number) {
   return `${m}m`;
 }
 
+function exportToCSV(sessions: { task_title: string; duration_seconds: number; ended_at: string | null; notes: string | null; subjects?: { name: string } | null }[]) {
+  const headers = ["Subject", "Task", "Date", "Duration (minutes)", "Notes"];
+  const rows = sessions.map((s) => [
+    s.subjects?.name ?? "",
+    s.task_title,
+    s.ended_at ? new Date(s.ended_at).toLocaleDateString() : "",
+    Math.round(s.duration_seconds / 60),
+    s.notes ?? "",
+  ]);
+
+  const csvContent = [
+    headers.join(","),
+    ...rows.map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(",")),
+  ].join("\n");
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `focusflow-history-${new Date().toISOString().slice(0, 10)}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 function HistoryPage() {
   const { user } = useAuth();
   const userId = user!.id;
@@ -38,7 +64,7 @@ function HistoryPage() {
       const { data, error } = await supabase
         .from("study_sessions")
         .select(
-          "id, task_title, duration_seconds, started_at, ended_at, subject_id, subjects(name, color_code)",
+          "id, task_title, duration_seconds, started_at, ended_at, subject_id, notes, subjects(name, color_code)",
         )
         .eq("saved", true)
         .order("ended_at", { ascending: false })
@@ -98,9 +124,22 @@ function HistoryPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">History</h1>
-        <p className="text-sm text-muted-foreground">All your saved focus sessions.</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">History</h1>
+          <p className="text-sm text-muted-foreground">All your saved focus sessions.</p>
+        </div>
+        {sessions.length > 0 && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            onClick={() => exportToCSV(sessions)}
+          >
+            <Download className="h-4 w-4" />
+            Export CSV
+          </Button>
+        )}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
@@ -172,18 +211,19 @@ function HistoryPage() {
               <TableHead>Task</TableHead>
               <TableHead>When</TableHead>
               <TableHead className="text-right">Duration</TableHead>
+              <TableHead>Notes</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center text-muted-foreground">
+                <TableCell colSpan={5} className="text-center text-muted-foreground">
                   Loading…
                 </TableCell>
               </TableRow>
             ) : sessions.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center text-muted-foreground">
+                <TableCell colSpan={5} className="text-center text-muted-foreground">
                   No sessions yet. Start one from your tasks.
                 </TableCell>
               </TableRow>
@@ -208,6 +248,15 @@ function HistoryPage() {
                     {s.ended_at ? new Date(s.ended_at).toLocaleString() : "—"}
                   </TableCell>
                   <TableCell className="text-right font-mono">{fmt(s.duration_seconds)}</TableCell>
+                  <TableCell className="max-w-48">
+                    {s.notes ? (
+                      <span className="line-clamp-1 text-sm text-muted-foreground" title={s.notes}>
+                        {s.notes}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground/50">—</span>
+                    )}
+                  </TableCell>
                 </TableRow>
               ))
             )}

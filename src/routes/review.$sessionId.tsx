@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,7 +15,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { CheckCircle2, Trash2, Save } from "lucide-react";
+import { CheckCircle2, Trash2, Save, FileText } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/review/$sessionId")({
@@ -39,7 +40,9 @@ function ReviewPage() {
     task_title: string;
     duration_seconds: number;
     todo_id: string | null;
+    notes: string | null;
   } | null>(null);
+  const [notes, setNotes] = useState("");
   const [askComplete, setAskComplete] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -51,7 +54,7 @@ function ReviewPage() {
     (async () => {
       const { data, error } = await supabase
         .from("study_sessions")
-        .select("task_title, duration_seconds, todo_id")
+        .select("task_title, duration_seconds, todo_id, notes")
         .eq("id", sessionId)
         .single();
       if (error || !data) {
@@ -60,6 +63,7 @@ function ReviewPage() {
         return;
       }
       setSession(data);
+      setNotes(data.notes || "");
     })();
   }, [sessionId, navigate]);
 
@@ -68,7 +72,7 @@ function ReviewPage() {
     setBusy(true);
     const { error } = await supabase
       .from("study_sessions")
-      .update({ saved: true })
+      .update({ saved: true, notes: notes.trim() || null })
       .eq("id", sessionId);
     if (error) {
       toast.error(error.message);
@@ -124,6 +128,20 @@ function ReviewPage() {
             <p className="mt-1 font-mono text-4xl font-light tabular-nums">
               {fmt(session.duration_seconds)}
             </p>
+          </div>
+
+          <div className="mt-6 text-left">
+            <label className="flex items-center gap-2 text-sm font-medium">
+              <FileText className="h-4 w-4 text-muted-foreground" />
+              Notes (optional)
+            </label>
+            <Textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="What did you learn? Any insights or next steps..."
+              className="mt-2"
+              rows={3}
+            />
           </div>
 
           <div className="mt-8 flex flex-col gap-2">

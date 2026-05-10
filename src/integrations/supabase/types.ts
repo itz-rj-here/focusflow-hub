@@ -271,216 +271,52 @@ export type Database = {
         };
         Relationships: [];
       };
-      study_sessions: {
+study_sessions: {
         Row: {
-          duration_seconds: number;
-          ended_at: string | null;
-          id: string;
-          is_paused: boolean;
-          paused_at: string | null;
-          saved: boolean;
-          started_at: string;
-          subject_id: string;
-          task_title: string;
-          todo_id: string | null;
-          total_paused_seconds: number;
-          user_id: string;
-        };
+          duration_seconds: number
+          ended_at: string | null
+          id: string
+          is_paused: boolean
+          notes: string | null
+          paused_at: string | null
+          saved: boolean
+          started_at: string
+          subject_id: string
+          task_title: string
+          todo_id: string | null
+          total_paused_seconds: number
+          user_id: string
+        }
         Insert: {
-          duration_seconds?: number;
-          ended_at?: string | null;
-          id?: string;
-          is_paused?: boolean;
-          paused_at?: string | null;
-          saved?: boolean;
-          started_at?: string;
-          subject_id: string;
-          task_title: string;
-          todo_id?: string | null;
-          total_paused_seconds?: number;
-          user_id: string;
-        };
+          duration_seconds?: number
+          ended_at?: string | null
+          id?: string
+          is_paused?: boolean
+          notes?: string | null
+          paused_at?: string | null
+          saved?: boolean
+          started_at?: string
+          subject_id: string
+          task_title: string
+          todo_id?: string | null
+          total_paused_seconds?: number
+          user_id: string
+        }
         Update: {
-          duration_seconds?: number;
-          ended_at?: string | null;
-          id?: string;
-          is_paused?: boolean;
-          paused_at?: string | null;
-          saved?: boolean;
-          started_at?: string;
-          subject_id?: string;
-          task_title?: string;
-          todo_id?: string | null;
-          total_paused_seconds?: number;
-          user_id?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "study_sessions_subject_id_fkey";
-            columns: ["subject_id"];
-            isOneToOne: false;
-            referencedRelation: "subjects";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "study_sessions_todo_id_fkey";
-            columns: ["todo_id"];
-            isOneToOne: false;
-            referencedRelation: "todos";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      subjects: {
-        Row: {
-          color_code: string;
-          created_at: string;
-          id: string;
-          name: string;
-          user_id: string;
-        };
-        Insert: {
-          color_code?: string;
-          created_at?: string;
-          id?: string;
-          name: string;
-          user_id: string;
-        };
-        Update: {
-          color_code?: string;
-          created_at?: string;
-          id?: string;
-          name?: string;
-          user_id?: string;
-        };
-        Relationships: [];
-      };
-      todos: {
-        Row: {
-          completed: boolean;
-          completed_at: string | null;
-          created_at: string;
-          due_date: string | null;
-          id: string;
-          priority: number;
-          subject_id: string | null;
-          title: string;
-          user_id: string;
-        };
-        Insert: {
-          completed?: boolean;
-          completed_at?: string | null;
-          created_at?: string;
-          due_date?: string | null;
-          id?: string;
-          priority?: number;
-          subject_id?: string | null;
-          title: string;
-          user_id: string;
-        };
-        Update: {
-          completed?: boolean;
-          completed_at?: string | null;
-          created_at?: string;
-          due_date?: string | null;
-          id?: string;
-          priority?: number;
-          subject_id?: string | null;
-          title?: string;
-          user_id?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "todos_subject_id_fkey";
-            columns: ["subject_id"];
-            isOneToOne: false;
-            referencedRelation: "subjects";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      user_blocks: {
-        Row: {
-          blocked_id: string;
-          blocker_id: string;
-          created_at: string;
-        };
-        Insert: {
-          blocked_id: string;
-          blocker_id: string;
-          created_at?: string;
-        };
-        Update: {
-          blocked_id?: string;
-          blocker_id?: string;
-          created_at?: string;
-        };
-        Relationships: [];
-      };
-    };
-    Views: {
-      [_ in never]: never;
-    };
-    Functions: {
-      are_friends: { Args: { a: string; b: string }; Returns: boolean };
-      find_user_by_invite_code: {
-        Args: { _code: string };
-        Returns: {
-          avatar_url: string;
-          id: string;
-          username: string;
-        }[];
-      };
-      generate_invite_code: { Args: never; Returns: string };
-      get_friends_leaderboard: {
-        Args: { range_kind: string };
-        Returns: {
-          avatar_url: string;
-          total_seconds: number;
-          user_id: string;
-          username: string;
-        }[];
-      };
-      get_leaderboard: {
-        Args: { range_kind: string };
-        Returns: {
-          avatar_url: string;
-          total_seconds: number;
-          user_id: string;
-          username: string;
-        }[];
-      };
-      get_my_invite_code: { Args: never; Returns: string };
-      is_blocked: { Args: { _a: string; _b: string }; Returns: boolean };
-      is_group_member: {
-        Args: { _group_id: string; _user_id: string };
-        Returns: boolean;
-      };
-      is_room_member: {
-        Args: { _room_id: string; _user_id: string };
-        Returns: boolean;
-      };
-    };
-    Enums: {
-      [_ in never]: never;
-    };
-    CompositeTypes: {
-      [_ in never]: never;
-    };
-  };
-};
-
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">;
-
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">];
-
-export type Tables<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals;
-  }
+          duration_seconds?: number
+          ended_at?: string | null
+          id?: string
+          is_paused?: boolean
+          notes?: string | null
+          paused_at?: string | null
+          saved?: boolean
+          started_at?: string
+          subject_id?: string
+          task_title?: string
+          todo_id?: string | null
+          total_paused_seconds?: number
+          user_id?: string
+        }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
