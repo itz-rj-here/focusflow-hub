@@ -58,6 +58,7 @@ function HomePage() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const [color, setColor] = useState(PALETTE[0]);
   const [editing, setEditing] = useState<Subject | null>(null);
   const [deleting, setDeleting] = useState<Subject | null>(null);
@@ -103,12 +104,14 @@ function HomePage() {
       const { error } = await supabase.from("subjects").insert({
         user_id: userId,
         name: name.trim(),
+        description: description.trim() || null,
         color_code: color,
       });
       if (error) throw error;
     },
     onSuccess: () => {
       setName("");
+      setDescription("");
       setColor(PALETTE[0]);
       setOpen(false);
       qc.invalidateQueries({ queryKey: ["subjects", userId] });
@@ -150,6 +153,14 @@ function HomePage() {
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Calculus"
                   autoFocus
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Description (optional)</label>
+                <Input
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="e.g. Math course for finals"
                 />
               </div>
               <div className="space-y-2">
@@ -198,6 +209,9 @@ function HomePage() {
                       </span>
                       <div className="min-w-0 flex-1">
                         <p className="truncate font-medium">{s.name}</p>
+                        {s.description && (
+                          <p className="truncate text-xs text-muted-foreground">{s.description}</p>
+                        )}
                         <p className="text-xs text-muted-foreground">
                           {st.open} open {st.open === 1 ? "task" : "tasks"}
                         </p>
@@ -277,11 +291,13 @@ function ColorPicker({ value, onChange }: { value: string; onChange: (c: string)
 function EditSubjectDialog({ subject, onClose }: { subject: Subject | null; onClose: () => void }) {
   const qc = useQueryClient();
   const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const [color, setColor] = useState(PALETTE[0]);
 
   useEffect(() => {
     if (subject) {
       setName(subject.name);
+      setDescription(subject.description ?? "");
       setColor(subject.color_code);
     }
   }, [subject]);
@@ -291,7 +307,7 @@ function EditSubjectDialog({ subject, onClose }: { subject: Subject | null; onCl
       if (!subject) return;
       const { error } = await supabase
         .from("subjects")
-        .update({ name: name.trim(), color_code: color })
+        .update({ name: name.trim(), description: description.trim() || null, color_code: color })
         .eq("id", subject.id);
       if (error) throw error;
     },
@@ -311,6 +327,7 @@ function EditSubjectDialog({ subject, onClose }: { subject: Subject | null; onCl
         if (!o) onClose();
         else if (subject) {
           setName(subject.name);
+          setDescription(subject.description ?? "");
           setColor(subject.color_code);
         }
       }}
@@ -329,6 +346,10 @@ function EditSubjectDialog({ subject, onClose }: { subject: Subject | null; onCl
           <div className="space-y-2">
             <label className="text-sm font-medium">Name</label>
             <Input value={name} onChange={(e) => setName(e.target.value)} autoFocus />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Description (optional)</label>
+            <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="e.g. Math course for finals" />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium">Color</label>

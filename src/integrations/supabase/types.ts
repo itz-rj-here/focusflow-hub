@@ -149,67 +149,319 @@ export type Database = {
       };
 profiles: {
         Row: {
-          avatar_url: string | null
-          break_reminder_enabled: boolean
-          break_reminder_interval_minutes: number
-          created_at: string
-          id: string
-          invite_code: string
-          username: string
-          visibility: string
-        }
+          avatar_url: string | null;
+          break_reminder_enabled: boolean;
+          break_reminder_interval_minutes: number;
+          created_at: string;
+          id: string;
+          invite_code: string;
+          username: string;
+          visibility: string;
+        };
         Insert: {
-          avatar_url?: string | null
-          break_reminder_enabled?: boolean
-          break_reminder_interval_minutes?: number
-          created_at?: string
-          id: string
-          invite_code?: string
-          username: string
-          visibility?: string
-        }
+          avatar_url?: string | null;
+          break_reminder_enabled?: boolean;
+          break_reminder_interval_minutes?: number;
+          created_at?: string;
+          id: string;
+          invite_code?: string;
+          username: string;
+          visibility?: string;
+        };
         Update: {
-          avatar_url?: string | null
-          break_reminder_enabled?: boolean
-          break_reminder_interval_minutes?: number
-          created_at?: string
-          id?: string
-          invite_code?: string
-          username?: string
-          visibility?: string
-        }
-        Relationships: []
-      }
+          avatar_url?: string | null;
+          break_reminder_enabled?: boolean;
+          break_reminder_interval_minutes?: number;
+          created_at?: string;
+          id?: string;
+          invite_code?: string;
+          username?: string;
+          visibility?: string;
+        };
+        Relationships: [];
+      };
+      study_sessions: {
+        Row: {
+          duration_seconds: number;
+          ended_at: string | null;
+          id: string;
+          is_paused: boolean;
+          notes: string | null;
+          paused_at: string | null;
+          saved: boolean;
+          started_at: string;
+          subject_id: string;
+          task_title: string;
+          todo_id: string | null;
+          total_paused_seconds: number;
+          user_id: string;
+        };
         Insert: {
-          duration_seconds?: number
-          ended_at?: string | null
-          id?: string
-          is_paused?: boolean
-          notes?: string | null
-          paused_at?: string | null
-          saved?: boolean
-          started_at?: string
-          subject_id: string
-          task_title: string
-          todo_id?: string | null
-          total_paused_seconds?: number
-          user_id: string
-        }
+          duration_seconds?: number;
+          ended_at?: string | null;
+          id?: string;
+          is_paused?: boolean;
+          notes?: string | null;
+          paused_at?: string | null;
+          saved?: boolean;
+          started_at?: string;
+          subject_id: string;
+          task_title: string;
+          todo_id?: string | null;
+          total_paused_seconds?: number;
+          user_id: string;
+        };
         Update: {
-          duration_seconds?: number
-          ended_at?: string | null
-          id?: string
-          is_paused?: boolean
-          notes?: string | null
-          paused_at?: string | null
-          saved?: boolean
-          started_at?: string
-          subject_id?: string
-          task_title?: string
-          todo_id?: string | null
-          total_paused_seconds?: number
-          user_id?: string
-        }
+          duration_seconds?: number;
+          ended_at?: string | null;
+          id?: string;
+          is_paused?: boolean;
+          notes?: string | null;
+          paused_at?: string | null;
+          saved?: boolean;
+          started_at?: string;
+          subject_id?: string;
+          task_title?: string;
+          todo_id?: string | null;
+          total_paused_seconds?: number;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      subjects: {
+        Row: {
+          color_code: string;
+          created_at: string;
+          description: string | null;
+          id: string;
+          name: string;
+          user_id: string;
+        };
+        Insert: {
+          color_code?: string;
+          created_at?: string;
+          description?: string | null;
+          id?: string;
+          name: string;
+          user_id: string;
+        };
+        Update: {
+          color_code?: string;
+          created_at?: string;
+          description?: string | null;
+          id?: string;
+          name?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      todos: {
+        Row: {
+          completed: boolean;
+          completed_at: string | null;
+          created_at: string;
+          due_date: string | null;
+          id: string;
+          priority: number;
+          subject_id: string | null;
+          title: string;
+          user_id: string;
+        };
+        Insert: {
+          completed?: boolean;
+          completed_at?: string | null;
+          created_at?: string;
+          due_date?: string | null;
+          id?: string;
+          priority?: number;
+          subject_id?: string | null;
+          title: string;
+          user_id: string;
+        };
+        Update: {
+          completed?: boolean;
+          completed_at?: string | null;
+          created_at?: string;
+          due_date?: string | null;
+          id?: string;
+          priority?: number;
+          subject_id?: string | null;
+          title?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      study_rooms: {
+        Row: {
+          ended_at: string | null;
+          id: string;
+          name: string;
+          owner_id: string;
+          started_at: string;
+          status: string;
+          subject_id: string | null;
+        };
+        Insert: {
+          ended_at?: string | null;
+          id?: string;
+          name: string;
+          owner_id: string;
+          started_at?: string;
+          status?: string;
+          subject_id?: string | null;
+        };
+        Update: {
+          ended_at?: string | null;
+          id?: string;
+          name?: string;
+          owner_id?: string;
+          started_at?: string;
+          status?: string;
+          subject_id?: string | null;
+        };
+        Relationships: [];
+      };
+      room_participants: {
+        Row: {
+          duration_seconds: number;
+          joined_at: string;
+          left_at: string | null;
+          room_id: string;
+          user_id: string;
+        };
+        Insert: {
+          duration_seconds?: number;
+          joined_at?: string;
+          left_at?: string | null;
+          room_id: string;
+          user_id: string;
+        };
+        Update: {
+          duration_seconds?: number;
+          joined_at?: string;
+          left_at?: string | null;
+          room_id?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      room_invites: {
+        Row: {
+          created_at: string;
+          id: string;
+          invitee_id: string;
+          inviter_id: string;
+          room_id: string;
+          status: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          invitee_id: string;
+          inviter_id: string;
+          room_id: string;
+          status?: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          invitee_id?: string;
+          inviter_id?: string;
+          room_id?: string;
+          status?: string;
+        };
+        Relationships: [];
+      };
+      user_blocks: {
+        Row: {
+          blocked_id: string;
+          blocker_id: string;
+          created_at: string;
+        };
+        Insert: {
+          blocked_id: string;
+          blocker_id: string;
+          created_at?: string;
+        };
+        Update: {
+          blocked_id?: string;
+          blocker_id?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      get_leaderboard: {
+        Args: { range_kind: string };
+        Returns: {
+          avatar_url: string;
+          total_seconds: number;
+          user_id: string;
+          username: string;
+        }[];
+      };
+      get_friends_leaderboard: {
+        Args: { range_kind: string };
+        Returns: {
+          avatar_url: string;
+          total_seconds: number;
+          user_id: string;
+          username: string;
+        }[];
+      };
+      get_my_invite_code: {
+        Args: Record<string, never>;
+        Returns: string;
+      };
+      find_user_by_invite_code: {
+        Args: { _code: string };
+        Returns: {
+          avatar_url: string;
+          id: string;
+          username: string;
+        }[];
+      };
+      is_blocked: {
+        Args: { _a: string; _b: string };
+        Returns: boolean;
+      };
+      is_group_member: {
+        Args: { _group_id: string; _user_id: string };
+        Returns: boolean;
+      };
+      is_room_member: {
+        Args: { _room_id: string; _user_id: string };
+        Returns: boolean;
+      };
+      are_friends: {
+        Args: { a: string; b: string };
+        Returns: boolean;
+      };
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
+  };
+}
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">;
+
+type DefaultSchema = DatabaseWithoutInternals["public"];
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,

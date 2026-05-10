@@ -1,8 +1,9 @@
 import { createFileRoute, Link, Outlet, redirect, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   LayoutGrid,
   ListTodo,
@@ -13,6 +14,7 @@ import {
   LogOut,
   Users,
   UsersRound,
+  Search,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_app")({
@@ -22,10 +24,65 @@ export const Route = createFileRoute("/_app")({
 function AppLayout() {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<{ type: "task" | "subject"; id: string; title: string }[]>([]);
+  const [showResults, setShowResults] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/login" });
   }, [user, loading, navigate]);
+
+  // Close search results when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowResults(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Search functionality
+  useEffect(() => {
+    if (searchQuery.trim().length < 2) {
+      setSearchResults([]);
+      return;
+    }
+    const search = async () => {
+      const q = searchQuery.toLowerCase();
+      // Search tasks
+      const { data: tasks } = await supabase
+        .from("todos")
+        .select("id, title")
+        .ilike("title", `%${q}%`)
+        .limit(5);
+      // Search subjects
+      const { data: subjects } = await supabase
+        .from("subjects")
+        .select("id, name")
+        .ilike("name", `%${q}%`)
+        .limit(5);
+      const results = [
+        ...(tasks?.map((t) => ({ type: "task" as const, id: t.id, title: t.title })) ?? []),
+        ...(subjects?.map((s) => ({ type: "subject" as const, id: s.id, title: s.name })) ?? []),
+      ];
+      setSearchResults(results);
+    };
+    const timer = setTimeout(search, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const handleResultClick = (result: { type: "task" | "subject"; id: string }) => {
+    setSearchQuery("");
+    setShowResults(false);
+    if (result.type === "task") {
+      navigate({ to: "/tasks" });
+    } else {
+      navigate({ to: "/subject/$subjectId", params: { subjectId: result.id } });
+    }
+  };
 
   if (loading || !user) {
     return (
@@ -45,6 +102,40 @@ function AppLayout() {
             </div>
             <span className="text-sm font-semibold tracking-tight">FocusFlow</span>
           </Link>
+          <div className="relative" ref={searchRef}>
+            <div className="relative">
+              <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setShowResults(true);
+                }}
+                onFocus={() => setShowResults(true)}
+                className="h-8 w-48 pl-8 text-sm lg:w-64"
+              />
+            </div>
+            {showResults && searchResults.length > 0 && (
+              <div className="absolute right-0 top-full z-50 mt-1 w-64 rounded-md border border-border bg-background p-1 shadow-lg">
+                {searchResults.map((result) => (
+                  <button
+                    key={`${result.type}-${result.id}`}
+                    onClick={() => handleResultClick(result)}
+                    className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm hover:bg-accent"
+                  >
+                    {result.type === "task" ? (
+                      <ListTodo className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <LayoutGrid className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    <span className="truncate">{result.title}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <nav className="flex items-center gap-1">
             <NavItem to="/app" icon={LayoutGrid} label="Subjects" />
             <NavItem to="/tasks" icon={ListTodo} label="Tasks" />
