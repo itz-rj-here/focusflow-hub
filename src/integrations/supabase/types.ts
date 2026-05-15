@@ -156,6 +156,8 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          break_reminder_enabled: boolean
+          break_reminder_interval_minutes: number
           created_at: string
           id: string
           invite_code: string
@@ -164,6 +166,8 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          break_reminder_enabled?: boolean
+          break_reminder_interval_minutes?: number
           created_at?: string
           id: string
           invite_code?: string
@@ -172,6 +176,8 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          break_reminder_enabled?: boolean
+          break_reminder_interval_minutes?: number
           created_at?: string
           id?: string
           invite_code?: string
@@ -282,33 +288,45 @@ export type Database = {
           duration_seconds: number
           ended_at: string | null
           id: string
+          is_paused: boolean
+          notes: string | null
+          paused_at: string | null
           saved: boolean
           started_at: string
           subject_id: string
           task_title: string
           todo_id: string | null
+          total_paused_seconds: number
           user_id: string
         }
         Insert: {
           duration_seconds?: number
           ended_at?: string | null
           id?: string
+          is_paused?: boolean
+          notes?: string | null
+          paused_at?: string | null
           saved?: boolean
           started_at?: string
           subject_id: string
           task_title: string
           todo_id?: string | null
+          total_paused_seconds?: number
           user_id: string
         }
         Update: {
           duration_seconds?: number
           ended_at?: string | null
           id?: string
+          is_paused?: boolean
+          notes?: string | null
+          paused_at?: string | null
           saved?: boolean
           started_at?: string
           subject_id?: string
           task_title?: string
           todo_id?: string | null
+          total_paused_seconds?: number
           user_id?: string
         }
         Relationships: [
@@ -332,6 +350,7 @@ export type Database = {
         Row: {
           color_code: string
           created_at: string
+          description: string | null
           id: string
           name: string
           user_id: string
@@ -339,6 +358,7 @@ export type Database = {
         Insert: {
           color_code?: string
           created_at?: string
+          description?: string | null
           id?: string
           name: string
           user_id: string
@@ -346,6 +366,7 @@ export type Database = {
         Update: {
           color_code?: string
           created_at?: string
+          description?: string | null
           id?: string
           name?: string
           user_id?: string
@@ -357,7 +378,9 @@ export type Database = {
           completed: boolean
           completed_at: string | null
           created_at: string
+          due_date: string | null
           id: string
+          priority: number
           subject_id: string | null
           title: string
           user_id: string
@@ -366,7 +389,9 @@ export type Database = {
           completed?: boolean
           completed_at?: string | null
           created_at?: string
+          due_date?: string | null
           id?: string
+          priority?: number
           subject_id?: string | null
           title: string
           user_id: string
@@ -375,7 +400,9 @@ export type Database = {
           completed?: boolean
           completed_at?: string | null
           created_at?: string
+          due_date?: string | null
           id?: string
+          priority?: number
           subject_id?: string | null
           title?: string
           user_id?: string
