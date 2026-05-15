@@ -155,30 +155,42 @@ export type Database = {
       }
       profiles: {
         Row: {
+          allow_friend_requests: boolean
           avatar_url: string | null
           break_reminder_enabled: boolean
           break_reminder_interval_minutes: number
           created_at: string
+          default_focus_minutes: number
+          display_name: string | null
+          focus_sound: string
           id: string
           invite_code: string
           username: string
           visibility: string
         }
         Insert: {
+          allow_friend_requests?: boolean
           avatar_url?: string | null
           break_reminder_enabled?: boolean
           break_reminder_interval_minutes?: number
           created_at?: string
+          default_focus_minutes?: number
+          display_name?: string | null
+          focus_sound?: string
           id: string
           invite_code?: string
           username: string
           visibility?: string
         }
         Update: {
+          allow_friend_requests?: boolean
           avatar_url?: string | null
           break_reminder_enabled?: boolean
           break_reminder_interval_minutes?: number
           created_at?: string
+          default_focus_minutes?: number
+          display_name?: string | null
+          focus_sound?: string
           id?: string
           invite_code?: string
           username?: string
