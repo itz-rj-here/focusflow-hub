@@ -138,6 +138,7 @@ function AppLayout() {
             )}
           </div>
           <nav className="flex items-center gap-1">
+            <StatsWidget />
             <NavItem to="/app" icon={LayoutGrid} label="Subjects" />
             <NavItem to="/tasks" icon={ListTodo} label="Tasks" />
             
