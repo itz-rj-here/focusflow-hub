@@ -85,7 +85,9 @@ function ReviewPage() {
         .from("todos")
         .update({ completed: true, completed_at: new Date().toISOString() })
         .eq("id", session.todo_id);
+      await awardTodoComplete(session.todo_id);
     }
+    await awardFocusSession(sessionId, session.duration_seconds ?? 0);
     toast.success("Session saved");
     navigate({ to: "/history" });
   };
