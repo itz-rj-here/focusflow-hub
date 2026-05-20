@@ -17,6 +17,7 @@ import {
 import { Play, Plus, Trash2, Pencil, Check, X, Flag, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
+import { awardTodoComplete } from "@/lib/gamification";
 
 export const Route = createFileRoute("/_app/tasks")({
   head: () => ({ meta: [{ title: "Tasks — FocusFlow" }] }),
@@ -144,14 +145,16 @@ function TasksPage() {
 
   const toggle = useMutation({
     mutationFn: async (t: Todo) => {
+      const becomingComplete = !t.completed;
       const { error } = await supabase
         .from("todos")
         .update({
-          completed: !t.completed,
-          completed_at: !t.completed ? new Date().toISOString() : null,
+          completed: becomingComplete,
+          completed_at: becomingComplete ? new Date().toISOString() : null,
         })
         .eq("id", t.id);
       if (error) throw error;
+      if (becomingComplete) await awardTodoComplete(t.id);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["todos"] });

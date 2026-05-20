@@ -447,12 +447,97 @@ export type Database = {
         }
         Relationships: []
       }
+      user_stats: {
+        Row: {
+          coins: number
+          current_streak: number
+          last_active_date: string | null
+          level: number
+          longest_streak: number
+          streak_freezes: number
+          updated_at: string
+          user_id: string
+          xp: number
+        }
+        Insert: {
+          coins?: number
+          current_streak?: number
+          last_active_date?: string | null
+          level?: number
+          longest_streak?: number
+          streak_freezes?: number
+          updated_at?: string
+          user_id: string
+          xp?: number
+        }
+        Update: {
+          coins?: number
+          current_streak?: number
+          last_active_date?: string | null
+          level?: number
+          longest_streak?: number
+          streak_freezes?: number
+          updated_at?: string
+          user_id?: string
+          xp?: number
+        }
+        Relationships: []
+      }
+      xp_ledger: {
+        Row: {
+          action_key: string
+          coins_delta: number
+          created_at: string
+          dedupe_key: string | null
+          id: string
+          metadata: Json
+          user_id: string
+          xp_delta: number
+        }
+        Insert: {
+          action_key: string
+          coins_delta?: number
+          created_at?: string
+          dedupe_key?: string | null
+          id?: string
+          metadata?: Json
+          user_id: string
+          xp_delta?: number
+        }
+        Update: {
+          action_key?: string
+          coins_delta?: number
+          created_at?: string
+          dedupe_key?: string | null
+          id?: string
+          metadata?: Json
+          user_id?: string
+          xp_delta?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
       are_friends: { Args: { a: string; b: string }; Returns: boolean }
+      award_xp: {
+        Args: {
+          _action_key: string
+          _coins: number
+          _dedupe_key?: string
+          _metadata?: Json
+          _xp: number
+        }
+        Returns: {
+          awarded: boolean
+          leveled_up: boolean
+          new_coins: number
+          new_level: number
+          new_xp: number
+        }[]
+      }
       find_user_by_invite_code: {
         Args: { _code: string }
         Returns: {
@@ -489,6 +574,16 @@ export type Database = {
       is_room_member: {
         Args: { _room_id: string; _user_id: string }
         Returns: boolean
+      }
+      level_from_xp: { Args: { _xp: number }; Returns: number }
+      tick_daily_streak: {
+        Args: never
+        Returns: {
+          advanced: boolean
+          current_streak: number
+          longest_streak: number
+          streak_freezes: number
+        }[]
       }
     }
     Enums: {

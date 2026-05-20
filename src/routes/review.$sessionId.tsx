@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { CheckCircle2, Trash2, Save, FileText } from "lucide-react";
 import { toast } from "sonner";
+import { awardFocusSession, awardTodoComplete } from "@/lib/gamification";
 
 export const Route = createFileRoute("/review/$sessionId")({
   head: () => ({ meta: [{ title: "Session review — FocusFlow" }] }),
@@ -84,7 +85,9 @@ function ReviewPage() {
         .from("todos")
         .update({ completed: true, completed_at: new Date().toISOString() })
         .eq("id", session.todo_id);
+      await awardTodoComplete(session.todo_id);
     }
+    await awardFocusSession(sessionId, session.duration_seconds ?? 0);
     toast.success("Session saved");
     navigate({ to: "/history" });
   };

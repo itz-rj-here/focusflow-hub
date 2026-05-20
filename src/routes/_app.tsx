@@ -4,6 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { StatsWidget } from "@/components/StatsWidget";
 import {
   LayoutGrid,
   ListTodo,
@@ -137,6 +138,7 @@ function AppLayout() {
             )}
           </div>
           <nav className="flex items-center gap-1">
+            <StatsWidget />
             <NavItem to="/app" icon={LayoutGrid} label="Subjects" />
             <NavItem to="/tasks" icon={ListTodo} label="Tasks" />
             
