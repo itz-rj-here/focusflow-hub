@@ -25,7 +25,7 @@ export async function awardXp(args: {
     _action_key: args.action,
     _xp: args.xp,
     _coins: args.coins,
-    _dedupe_key: args.dedupeKey ?? null,
+    _dedupe_key: args.dedupeKey,
     _metadata: (args.metadata ?? {}) as never,
   });
   if (error) {
