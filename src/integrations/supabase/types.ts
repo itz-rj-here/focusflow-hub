@@ -522,6 +522,22 @@ export type Database = {
     }
     Functions: {
       are_friends: { Args: { a: string; b: string }; Returns: boolean }
+      award_xp: {
+        Args: {
+          _action_key: string
+          _coins: number
+          _dedupe_key?: string
+          _metadata?: Json
+          _xp: number
+        }
+        Returns: {
+          awarded: boolean
+          leveled_up: boolean
+          new_coins: number
+          new_level: number
+          new_xp: number
+        }[]
+      }
       find_user_by_invite_code: {
         Args: { _code: string }
         Returns: {
@@ -558,6 +574,16 @@ export type Database = {
       is_room_member: {
         Args: { _room_id: string; _user_id: string }
         Returns: boolean
+      }
+      level_from_xp: { Args: { _xp: number }; Returns: number }
+      tick_daily_streak: {
+        Args: never
+        Returns: {
+          advanced: boolean
+          current_streak: number
+          longest_streak: number
+          streak_freezes: number
+        }[]
       }
     }
     Enums: {
