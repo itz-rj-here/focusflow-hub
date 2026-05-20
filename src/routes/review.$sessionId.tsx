@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { CheckCircle2, Trash2, Save, FileText } from "lucide-react";
 import { toast } from "sonner";
+import { awardFocusSession, awardTodoComplete } from "@/lib/gamification";
 
 export const Route = createFileRoute("/review/$sessionId")({
   head: () => ({ meta: [{ title: "Session review — FocusFlow" }] }),
