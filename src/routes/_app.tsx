@@ -4,6 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { StatsWidget } from "@/components/StatsWidget";
 import {
   LayoutGrid,
   ListTodo,
