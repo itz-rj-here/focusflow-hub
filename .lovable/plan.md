@@ -1,104 +1,167 @@
-# FocusFlow — Build Plan
+# FocusFlow Gamification Plan
 
-A sleek dark-mode study app: Google login, to-do list, full-screen stopwatch focus mode, session review with charts, and a public leaderboard.
+Turn FocusFlow from a focus tracker into a study RPG. Users earn **XP** (levels up their profile) and **Coins** (spendable currency) from focusing, completing tasks, hitting habits, and journaling. They unlock **Achievements**, collect **Stickers** from a shop, and build **Streaks** — with friends seeing levels & streaks while journals/habits stay private.
 
-## Stack
+---
 
-- **Frontend**: TanStack Start (React 19) + Tailwind v4 + shadcn/ui (already installed)
-- **Backend / Auth / DB**: Lovable Cloud (Supabase) with Google OAuth
-- **Charts**: Recharts
+## 1. Core Economy: XP + Coins
 
-## Design System
+**Earning rules** (server-side, anti-cheat):
 
-- **Dark mode by default** (apply `.dark` on `<html>`)
-- Minimal, high-contrast surfaces; generous spacing; one accent color (indigo/violet)
-- Monospace digits for the timer; subtle ticking animation
-- All colors defined as semantic tokens in `src/styles.css`
+| Action | XP | Coins |
+|---|---|---|
+| 1 min focused (saved session) | 1 XP | 0.2 coin |
+| Complete a todo | 10 XP | 2 coins |
+| Hit a habit on its scheduled day | 15 XP | 3 coins |
+| Write a journal entry | 10 XP | 2 coins |
+| Daily streak day (any activity) | +20 XP | +5 coins |
+| First focus of the day | +5 XP bonus | — |
+| Unlock an achievement | varies (25–500 XP) | varies (10–200 coins) |
 
-## Database Schema (Lovable Cloud)
+**Leveling curve:** `xp_for_level(n) = 100 * n * (n+1) / 2` (level 1 → 100xp, 5 → 1500xp, 10 → 5500xp). Display as a progress bar in the sidebar header.
 
-**profiles** — one row per user, auto-created on signup via trigger
+**Level perks:** every 5 levels unlocks a profile frame + sticker pack in the shop.
 
-- `id` (uuid, FK → auth.users, PK)
-- `username` (text, unique)
-- `avatar_url` (text)
-- `visibility` ('public' | 'private', default `'public'`)
-- `created_at`
+---
 
-**todos**
+## 2. Achievements
 
-- `id`, `user_id` (FK), `title`, `completed` (bool), `created_at`, `completed_at`
+A catalog of badges with categories: **Focus**, **Tasks**, **Habits**, **Journal**, **Social**, **Secret**.
 
-**study_sessions**
+Examples:
+- *First Focus* — finish 1 saved session (25 XP, 10 coins)
+- *Deep Diver* — 2-hour single session
+- *Marathon Week* — 10h in one week
+- *Centurion* — 100 sessions total
+- *Habit Hero* — 30-day habit streak
+- *Reflection* — 7 journal entries
+- *Night Owl / Early Bird* — session before 6am / after midnight (secret)
+- *Subject Master* — 50h in one subject
 
-- `id`, `user_id` (FK), `todo_id` (FK, nullable), `task_title` (text snapshot), `duration_seconds` (int), `started_at`, `ended_at`
+Each achievement has: icon, name, description, tier (bronze/silver/gold), progress bar, hidden flag.
 
-**RLS** (strict):
+UI: `/_app/achievements` route — grid of cards, locked ones grayscale with progress, unlocked shown with date earned and rarity %.
 
-- `todos`, `study_sessions`: owner-only select/insert/update/delete
-- `profiles`: owner can update; anyone authenticated can SELECT only rows where `visibility = 'public'` (plus their own row)
-- Leaderboard reads via a `SECURITY DEFINER` function that aggregates `study_sessions` for public profiles only — never exposes private user data
+---
 
-## Routes
+## 3. Habit Tracking
 
-```text
-/                       Landing — pitch + "Sign in with Google"
-/login                  Google sign-in screen
-/_authenticated/        (protected layout with sidebar nav)
-  /app                    To-do list (home for signed-in users)
-  /focus/$sessionId       Full-screen Focus Mode (stopwatch)
-  /review/$sessionId      Session Review (save/discard + complete-task prompt)
-  /history                Past sessions table + bar chart (time per day/week)
-  /settings               Username + visibility toggle (Public/Private)
-/leaderboard            Public — Daily / Weekly / All-time tabs
-```
+Supports all four scopes the user picked: **Study, Wellness, Custom, Negative**.
 
-## User Flow
+**Habit model:** name, icon emoji, category (study/wellness/custom/negative), frequency (`daily` | `weekly_n` with target count | `specific_days` like Mon/Wed/Fri), color, is_negative (flips the success logic — "stayed clean today").
 
-1. **Land** → Sign in with Google → profile auto-created (default **Public**).
-2. **/app** — Add/edit/check-off to-dos. Each row has a "Start Focusing" button.
-3. **Start Focusing** → creates a `study_sessions` row with `started_at = now()` and routes to `/focus/$id`.
-4. **Focus Mode** — Full-screen black canvas, only the task title and a large counting-up `HH:MM:SS` timer + a single "End Session" button. No nav, no distractions.
-5. **End Session** → routes to `/review/$id` showing duration + task. Buttons:
-   - **Save to History** → prompts "Mark task complete?" (Yes / No / Cancel) → finalizes the session.
-   - **Discard** → deletes the session row.
-6. **/history** — Table of past sessions + Recharts bar chart of total minutes per day (last 14 days) and per week (last 8 weeks, toggle).
-7. **/leaderboard** — Tabs: **Today / This Week / All-Time**. Ranks public users by summed `duration_seconds`. Shows rank, username, avatar, total hours. Current user highlighted if visible.
-8. **/settings** — Edit username; toggle Profile Visibility (Public/Private). Private hides the user from the leaderboard immediately.
+**Daily check-in UI** (`/_app/habits`):
+- Today's habits as toggle cards. Tap to check off → XP/coins animate up.
+- Weekly grid view (last 7 days, GitHub-style).
+- Streak counter per habit + "longest ever" record.
+- Negative habits show "X days clean" with a single "I slipped" reset.
 
-## Key Components
+**Auto-suggestions** based on subjects (e.g. "Review Math notes 3×/week" when a Math subject exists).
 
-- `TodoList` — list, inline add, checkbox, edit, delete, "Start Focusing" CTA
-- `FocusTimer` — full-screen layout, counts seconds via `setInterval`, persists `started_at` so refresh recovers correctly
-- `SessionReviewCard` — duration summary + Save/Discard + AlertDialog for "Mark task complete?"
-- `HistoryChart` — Recharts BarChart of minutes-per-day / per-week
-- `LeaderboardTable` — tabbed (daily/weekly/all-time), top-100, podium styling for top 3
-- `VisibilityToggle` — Switch in Settings, optimistic update
+---
 
-## Server Functions (TanStack `createServerFn`)
+## 4. Journal (All-Three Combined)
 
-All use `requireSupabaseAuth` middleware so RLS applies as the user:
+`/_app/journal` route with three entry modes:
 
-- `listTodos`, `createTodo`, `updateTodo`, `deleteTodo`, `toggleTodo`
-- `startSession({ todoId })` → returns sessionId
-- `endSession({ sessionId, save: bool, completeTodo: bool })`
-- `listSessions({ range })` for History
-- `getStats({ bucket: 'day'|'week' })` for the chart
-- `updateProfile({ username, visibility })`
+1. **Daily Reflection** — auto-prompted card on dashboard each day with rotating prompts ("What did you learn today?", "What blocked you?", "One win"). One per day.
+2. **Free-form** — full markdown editor, tag by subject + mood (emoji picker: 😄😐😔😤🔥), searchable.
+3. **Post-session** — after ending a focus session, a small "Reflect on this session?" prompt appears, optional, attached to that session_id.
 
-Public (no auth) server function for the leaderboard:
+**Calendar view:** month grid; days with entries are colored by mood. Click → read/edit.
 
-- `getLeaderboard({ range: 'day'|'week'|'all' })` — calls a SECURITY DEFINER SQL function that joins public profiles + summed sessions
+**Privacy:** journal is *always* private (not affected by social settings).
 
-## Out of Scope (v1)
+---
 
-- Pomodoro mode (you chose stopwatch only)
-- Friends / following / direct messages
-- Mobile native; the web UI is fully responsive
-- Email-based login (Google only, per spec)
+## 5. Sticker Shop & Inventory
 
-## Technical Notes
+Coins are spent in `/_app/shop`:
 
-- The original spec mentioned Next.js + NextAuth + Prisma; this build uses **TanStack Start + Lovable Cloud (Supabase)** which is the supported Lovable stack and natively provides Google OAuth, Postgres, and RLS — same end-result, no Prisma needed.
-- Roles aren't needed (no admin tier in v1), so no `user_roles` table.
-- Leaderboard query uses a SQL aggregate function with `SECURITY DEFINER` to safely read across users without weakening RLS on raw tables.
+- **Sticker packs** (50–300 coins): themed sets — Animals, Space, Retro, Anime, Minimalist. ~6 stickers per pack.
+- **Profile frames** (200 coins): borders around avatar (gold, neon, gradient).
+- **Theme accents** (500 coins): custom accent colors beyond the defaults.
+- **Streak freeze** (100 coins): consumable, protects a streak for 1 missed day. Max 3 in inventory.
+
+**Inventory** at `/_app/inventory`: shows owned stickers grouped by pack.
+
+**Where stickers appear:**
+- React to friends' achievements/sessions with a sticker (DM/group chat).
+- Decorate journal entries.
+- Pin 3 favorites on your public profile.
+
+---
+
+## 6. Streaks
+
+A unified **daily activity streak** (any of: focus session ≥10min, habit checked, journal entry).
+- Shown as a 🔥 number in the sidebar.
+- "Streak freeze" auto-consumes if user owned one and missed a day.
+- Milestone bonuses at 3/7/14/30/100/365 days (chunky coin rewards + exclusive sticker).
+
+Separate per-habit streaks live inside the Habits page.
+
+---
+
+## 7. Hybrid Social Visibility
+
+- **Public to friends:** level, XP bar, total focus hours, current streak, unlocked achievements, pinned stickers.
+- **Always private:** journal entries, habit list, habit check-ins, coin balance, inventory contents.
+- **Leaderboard** gains a "Level" column next to total seconds.
+- New **Friend Activity Feed** (`/_app/community` tab): "Alice unlocked *Centurion*", "Bob hit a 30-day streak". Opt-out toggle in Settings.
+- **Cheer** button on feed items → costs 1 coin, sender's name shown to recipient.
+
+---
+
+## 8. UI Touchpoints
+
+- **Sidebar header:** avatar + frame, level badge, XP bar, 🔥 streak, 🪙 coin balance.
+- **New nav items:** Habits, Journal, Achievements, Shop.
+- **Dashboard widgets:** Today's habits checklist, Daily reflection prompt, Next achievement progress.
+- **Focus session end screen:** XP/coin earned animation, "Reflect?" prompt, achievement unlock toast.
+- **Toasts:** Level-up modal (confetti), achievement unlock card, streak milestone celebration.
+
+---
+
+## 9. Technical Details
+
+**New tables:**
+- `user_stats` (user_id PK, xp, level, coins, current_streak, longest_streak, last_active_date, streak_freezes)
+- `achievements` (id, key, name, description, category, tier, xp_reward, coin_reward, icon, is_secret, criteria jsonb) — seeded catalog
+- `user_achievements` (user_id, achievement_id, unlocked_at, progress)
+- `habits` (id, user_id, name, icon, category, frequency_type, frequency_config jsonb, color, is_negative, archived_at)
+- `habit_logs` (id, habit_id, user_id, date, completed)
+- `journal_entries` (id, user_id, type [daily/free/session], session_id nullable, subject_id nullable, mood, content, prompt, created_at)
+- `sticker_packs` (id, name, price_coins, theme) + `stickers` (id, pack_id, name, image_url, rarity)
+- `user_inventory` (user_id, item_type, item_id, quantity, acquired_at)
+- `cosmetics` (frames, themes) + `user_cosmetics` (equipped flag)
+- `activity_feed` (id, user_id, type, payload jsonb, created_at) — for friend feed
+- `cheers` (id, from_user, to_user, activity_id, created_at)
+
+All with RLS scoped to `auth.uid()`. Habits/journal: owner-only. user_stats: owner full + friends read of `level, current_streak, total_xp` via a `public_stats` view. user_achievements: owner full + friends read.
+
+**Server functions (`createServerFn`):**
+- `awardXp(action, metadata)` — single source of truth, called from session save, todo complete, habit check, journal save. Idempotent per `(user_id, action_key, date)` where applicable.
+- `checkAchievements(user_id)` — runs after every award; evaluates `criteria` against user data, inserts unlocked rows, returns newly unlocked list for client toast.
+- `tickStreak(user_id)` — runs daily on first activity; consumes freeze if needed.
+- `purchaseItem(item_id)` — deducts coins, adds to inventory, atomic.
+- `cheer(activity_id)` — deducts 1 coin, notifies recipient.
+
+**Anti-cheat:** XP for focus sessions calculated server-side from `duration_seconds` of the saved row, not trusted from client. Reject sessions <60s or >6h.
+
+**Seed data migration:** ~30 starter achievements + 5 sticker packs + 3 frames.
+
+---
+
+## 10. Build Order
+
+1. **Foundation** — `user_stats` table, `awardXp` server fn, sidebar XP/level/coin widget, hook into existing focus session save + todo complete.
+2. **Achievements** — catalog + seed + evaluator + `/achievements` page + unlock toasts.
+3. **Habits** — full CRUD, daily check-in UI, weekly grid, streak per habit, XP integration.
+4. **Journal** — three modes, calendar view, mood tagging, post-session prompt.
+5. **Streaks & Daily flow** — unified streak, milestone rewards, dashboard "today" widget.
+6. **Shop & Stickers** — packs, inventory, sticker reactions in chat, profile pinning, frames.
+7. **Social layer** — activity feed, cheers, leaderboard level column, friend profile views.
+8. **Polish** — level-up modal with confetti, sound effects (respecting focus_sound preference), animations throughout.
+
+Each phase is shippable on its own and builds on the previous.

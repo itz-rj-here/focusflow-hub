@@ -447,6 +447,75 @@ export type Database = {
         }
         Relationships: []
       }
+      user_stats: {
+        Row: {
+          coins: number
+          current_streak: number
+          last_active_date: string | null
+          level: number
+          longest_streak: number
+          streak_freezes: number
+          updated_at: string
+          user_id: string
+          xp: number
+        }
+        Insert: {
+          coins?: number
+          current_streak?: number
+          last_active_date?: string | null
+          level?: number
+          longest_streak?: number
+          streak_freezes?: number
+          updated_at?: string
+          user_id: string
+          xp?: number
+        }
+        Update: {
+          coins?: number
+          current_streak?: number
+          last_active_date?: string | null
+          level?: number
+          longest_streak?: number
+          streak_freezes?: number
+          updated_at?: string
+          user_id?: string
+          xp?: number
+        }
+        Relationships: []
+      }
+      xp_ledger: {
+        Row: {
+          action_key: string
+          coins_delta: number
+          created_at: string
+          dedupe_key: string | null
+          id: string
+          metadata: Json
+          user_id: string
+          xp_delta: number
+        }
+        Insert: {
+          action_key: string
+          coins_delta?: number
+          created_at?: string
+          dedupe_key?: string | null
+          id?: string
+          metadata?: Json
+          user_id: string
+          xp_delta?: number
+        }
+        Update: {
+          action_key?: string
+          coins_delta?: number
+          created_at?: string
+          dedupe_key?: string | null
+          id?: string
+          metadata?: Json
+          user_id?: string
+          xp_delta?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
