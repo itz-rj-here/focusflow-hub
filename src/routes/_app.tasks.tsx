@@ -17,6 +17,7 @@ import {
 import { Play, Plus, Trash2, Pencil, Check, X, Flag, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
+import { awardTodoComplete } from "@/lib/gamification";
 
 export const Route = createFileRoute("/_app/tasks")({
   head: () => ({ meta: [{ title: "Tasks — FocusFlow" }] }),
