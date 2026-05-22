@@ -521,7 +521,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      are_friends: { Args: { a: string; b: string }; Returns: boolean }
       award_xp: {
         Args: {
           _action_key: string
@@ -566,15 +565,6 @@ export type Database = {
         }[]
       }
       get_my_invite_code: { Args: never; Returns: string }
-      is_blocked: { Args: { _a: string; _b: string }; Returns: boolean }
-      is_group_member: {
-        Args: { _group_id: string; _user_id: string }
-        Returns: boolean
-      }
-      is_room_member: {
-        Args: { _room_id: string; _user_id: string }
-        Returns: boolean
-      }
       level_from_xp: { Args: { _xp: number }; Returns: number }
       tick_daily_streak: {
         Args: never
